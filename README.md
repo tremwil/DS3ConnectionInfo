@@ -16,7 +16,7 @@ Download the lastest release from the Releases tab and extract the ZIP file in a
 It is 100% ban-safe, as the program does not modify the game's memory in any way. 
 
 ### Why does the program close when the game does?
-Since the code uses the Steam API with DS3's Steam App ID, letting the program run after the game would make Steam think the game closes is still running. Calling `SteamAPI_Shutdown` does not seem to fix the problem, so we have to close the process. A DLL mod could make this seamless, but making an external program is simpler and doesn't require ban testing.
+Since the code uses the Steam API with DS3's Steam App ID, letting the program run after the game closes would make Steam think the it is still running. Calling `SteamAPI_Shutdown` does not seem to fix the problem, so we have to close the process. A DLL mod could make this seamless, but making an external program is simpler and doesn't require ban testing.
 
 ### Why show the location of players?
 Sometimes the ping shown can be inaccurate due to early network nodes blocking ping packets. Showing basic geolocation information can help to get a more reliable idea of the latency in that case. When playing any direct P2P game such as Dark Souls III you should be aware that your public IP address (which is linked to your location) is transmitted to other players. **This is not a security exploit.** Use a VPN if you wish to keep this information private.
