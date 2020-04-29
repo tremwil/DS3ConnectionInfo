@@ -49,7 +49,7 @@ namespace DS3ConnectionInfo
                     JObject data = JObject.Parse(reader.ReadToEnd());
                     if (data["status"].ToString() == "success")
                     {
-                        return string.Format("{0}, {1}, {2}", data["city"], data["regionName"], data["country"]);
+                        return string.Format("{0}, {1}", data["regionName"], data["country"]);
                     }
                     return "GEOLOCATION FAIL: " + data["message"].ToString();
                 }
