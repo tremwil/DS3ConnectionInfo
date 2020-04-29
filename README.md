@@ -26,3 +26,5 @@ Feel free to open an issue on this Github or direct message me on discord at tre
 
 # How it works
 The program reads the Steam ID and character name of active players from the game's memory (like Cheat Engine). From there we use the Steam API function `GetP2PSessionState` to get the remote IP address. Since most routers deny ICMP ping requests, I use a TraceRoute like method to ping the network node that is closest to the player IP. This gives a pretty good estimate for the ping, but it will always be lower than the true value. Hence I also provide region-specific geolocating using [ip-api](https://ip-api.com) to query the country and region (state) information.
+
+Credits to the developers of the DS3 Grand Archives Cheat Table for the player data pointers.
