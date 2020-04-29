@@ -227,6 +227,7 @@ namespace DS3ConnectionInfo
                         })
                     }
             });
+
             ConsoleRenderer.RenderDocument(doc);
             for (int i = Console.CursorTop; i < Console.WindowHeight - 1; i++)
             {
