@@ -21,5 +21,8 @@ Since the code uses the Steam API with DS3's Steam App ID, letting the program r
 ### Why show the location of players?
 Sometimes the ping shown can be inaccurate due to early network nodes blocking ping packets. Showing basic geolocation information can help to get a more reliable idea of the latency in that case. When playing any direct P2P game such as Dark Souls III you should be aware that your public IP address (which is linked to your location) is transmitted to other players. **This is not a security exploit.** Use a VPN if you wish to keep this information private.
 
+### I found a bug / I have something to say about the mod
+Feel free to open an issue on this Github or direct message me on discord at tremwil#3713.
+
 # How it works
 The program reads the Steam ID and character name of active players from the game's memory (like Cheat Engine). From there we use the Steam API function `GetP2PSessionState` to get the remote IP address. Since most routers deny ICMP ping requests, I use a TraceRoute like method to ping the network node that is closest to the player IP. This gives a pretty good estimate for the ping, but it will always be lower than the true value. Hence I also provide region-specific geolocating using [ip-api](https://ip-api.com) to query the country and region (state) information.
