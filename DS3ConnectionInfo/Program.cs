@@ -20,7 +20,7 @@ namespace DS3ConnectionInfo
         static void Main(string[] args)
         {
             Console.CursorVisible = false;
-            Console.Title = "DS3 Connection Info";
+            Console.Title = "DS3 Connection Info V2";
             Console.OutputEncoding = Encoding.Unicode;
 
             SteamNative.Initialize();
