@@ -88,17 +88,24 @@ namespace DS3ConnectionInfo
         {
             for (int slot = 0; slot < 5; slot++)
             {
-                DeepPointer<long> playerBase = new DeepPointer<long>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1) });
-                if (playerBase.GetValue() == 0) continue;
+                try
+                {
+                    DeepPointer<long> playerBase = new DeepPointer<long>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1) });
+                    if (playerBase.GetValue() == 0) continue;
 
-                DeepPointerStr idPtr = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x7D8 });
-                if (!ulong.TryParse(idPtr.GetValueUnicode(16), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong id))
-                    continue;
+                    DeepPointerStr idPtr = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x7D8 });
+                    if (!ulong.TryParse(idPtr.GetValueUnicode(16), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong id))
+                        continue;
 
-                if (!activePlayers.ContainsKey(id)) continue;
-                activePlayers[id].CharSlot = slot.ToString();
-                activePlayers[id].CharName = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x88 }).GetValueUnicode(16);
-                activePlayers[id].TeamId = new DeepPointer<int>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x74 }).GetValue();
+                    if (!activePlayers.ContainsKey(id)) continue;
+                    activePlayers[id].CharSlot = slot.ToString();
+                    activePlayers[id].CharName = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x88 }).GetValueUnicode(16);
+                    activePlayers[id].TeamId = new DeepPointer<int>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x74 }).GetValue();
+                }
+                catch (Exception)
+                {
+                    
+                }
             }
         }
 
