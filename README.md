@@ -31,7 +31,8 @@ Feel free to open an issue on this Github or direct message me on discord at tre
 
 # How it works (V2)
 The Steam API is used to query the Steam ID of recently met players. Using `GetP2PSessionState`, we are able to query if each player is currently connected and get
-the remote IP address. To calculate the pings, ETW (Event Tracing for Windows) networking events are monitored to find when STUN packets are sent to and recieved from player IPs. This is why administrator privileges are required. The region-specific geolocating comes from [ip-api](https://ip-api.com).
+the remote IP address. This is then matched to the slot and character name from the game's memory. The reason for using recently met players instead of simply
+reading the Steam ID from the game's memory is that the latter can be spoofed by players (for example when running the PyreProtecc anti cheat). To calculate the pings, ETW (Event Tracing for Windows) networking events are monitored to find when STUN packets are sent to and recieved from player IPs. The region-specific geolocating comes from [ip-api](https://ip-api.com).
 
 # How it works (V1)
 The program reads the Steam ID and character name of active players from the game's memory (like Cheat Engine). From there we use the Steam API function `GetP2PSessionState` to get the remote IP address. Since most routers deny ICMP ping requests, I use a traceroute like method to ping the network node that is closest to the player IP. This gives a pretty good estimate for the ping, but it will always be lower than the true value. Hence I also provide region-specific geolocating using [ip-api](https://ip-api.com) to query the country and region (state) information.
