@@ -20,7 +20,7 @@ namespace DS3ConnectionInfo
         static void Main(string[] args)
         {
             Console.CursorVisible = false;
-            Console.Title = "DS3 Connection Info V2";
+            Console.Title = "DS3 Connection Info V2.1";
             Console.OutputEncoding = Encoding.Unicode;
 
             SteamNative.Initialize();
@@ -52,6 +52,8 @@ namespace DS3ConnectionInfo
 
                 Thread.Sleep(1000);
             }
+
+            ETWPingMonitor.Stop();
         }
 
         static void PrintConnInfo()

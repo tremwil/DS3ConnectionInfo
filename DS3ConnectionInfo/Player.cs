@@ -60,10 +60,22 @@ namespace DS3ConnectionInfo
 
         private Player(ulong steamID, P2PSessionState_t session)
         {
-            sessionState = session;
             SteamID = steamID;
             SteamName = SteamApi.SteamFriends.GetFriendPersonaName(steamID);
 
+            CharSlot = "";
+            TeamId = -1;
+            CharName = "";
+
+            UpdateNetInfo(session);
+        }
+
+        private void UpdateNetInfo(P2PSessionState_t session)
+        {
+            if (sessionState.m_nRemoteIP == session.m_nRemoteIP)
+                return;
+
+            sessionState = session;
             Ip = null;
             Region = "...";
 
@@ -73,10 +85,6 @@ namespace DS3ConnectionInfo
                 Ip = new IPAddress(ipBytes);
                 IpLocationAPI.GetLocationAsync(Ip.ToString(), r => Region = r);
             }
-
-            CharSlot = "";
-            TeamId = -1;
-            CharName = "";
         }
 
         public static IEnumerable<Player> ActivePlayers()
@@ -121,13 +129,13 @@ namespace DS3ConnectionInfo
 
                 P2PSessionState_t session = new P2PSessionState_t();
                 if (!SteamApi.SteamNetworking.GetP2PSessionState(id, ref session))
-                {
                     activePlayers.Remove(id);
-                }
+
                 else if (!activePlayers.ContainsKey(id))
-                {
                     activePlayers[id] = new Player(id, session);
-                }
+
+                else
+                    activePlayers[id].UpdateNetInfo(session);
             }
         }
     }
