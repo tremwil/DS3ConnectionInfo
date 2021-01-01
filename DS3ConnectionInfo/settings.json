@@ -1,0 +1,7 @@
+{
+	"overlay"   : true,
+	"showRegion": false,
+	"xOffset"   : 0.025,
+	"yOffset"   : 0.05,
+	"textScale" : 1.0 
+}

@@ -61,13 +61,20 @@ namespace DS3ConnectionInfo
         private Player(ulong steamID, P2PSessionState_t session)
         {
             SteamID = steamID;
-            SteamName = SteamApi.SteamFriends.GetFriendPersonaName(steamID);
+            SteamName = FixedPersonaName(steamID);
 
             CharSlot = "";
             TeamId = -1;
             CharName = "";
 
             UpdateNetInfo(session);
+        }
+
+        private static string FixedPersonaName(ulong steamID)
+        {
+            byte[] wrong = Encoding.Unicode.GetBytes(SteamApi.SteamFriends.GetFriendPersonaName(steamID));
+            byte[] original = Enumerable.Range(0, wrong.Length / 2).Select(i => wrong[2*i]).ToArray();
+            return Encoding.UTF8.GetString(original);
         }
 
         private void UpdateNetInfo(P2PSessionState_t session)
@@ -128,7 +135,7 @@ namespace DS3ConnectionInfo
                 ulong id = SteamApi.SteamFriends.GetCoplayFriend(i);
 
                 P2PSessionState_t session = new P2PSessionState_t();
-                if (!SteamApi.SteamNetworking.GetP2PSessionState(id, ref session))
+                if (!SteamApi.SteamNetworking.GetP2PSessionState(id, ref session) || session.m_bConnectionActive == 0)
                     activePlayers.Remove(id);
 
                 else if (!activePlayers.ContainsKey(id))

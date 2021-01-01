@@ -8,8 +8,10 @@ using SteamworksSharp;
 using SteamworksSharp.Native;
 using Valve.Steamworks;
 using Alba.CsConsoleFormat;
+using Newtonsoft.Json.Linq;
 
 using static System.ConsoleColor;
+using System.IO;
 
 namespace DS3ConnectionInfo
 {
@@ -19,9 +21,10 @@ namespace DS3ConnectionInfo
 
         static void Main(string[] args)
         {
+            JObject settings = JObject.Parse(File.ReadAllText("settings.json"));
+
             Console.CursorVisible = false;
-            Console.Title = "DS3 Connection Info V2.1";
-            Console.OutputEncoding = Encoding.Unicode;
+            Console.Title = "DS3 Connection Info V3";
 
             SteamNative.Initialize();
             mem = new MemoryManager();
@@ -43,6 +46,12 @@ namespace DS3ConnectionInfo
 
             ETWPingMonitor.Start();
 
+            if ((bool)settings["overlay"])
+            {
+                Overlay.Enable(settings);
+            }
+            
+
             Console.Clear();
             while (!mem.HasExited)
             {
@@ -53,6 +62,7 @@ namespace DS3ConnectionInfo
                 Thread.Sleep(1000);
             }
 
+            Overlay.Disable();
             ETWPingMonitor.Stop();
         }
 
