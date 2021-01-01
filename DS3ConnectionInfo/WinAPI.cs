@@ -152,7 +152,7 @@ namespace DS3ConnectionInfo
         public static extern bool IsWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        public static extern IntPtr FindWindowEx(IntPtr hWndParent, IntPtr hWndChildAfter, string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -163,6 +163,9 @@ namespace DS3ConnectionInfo
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

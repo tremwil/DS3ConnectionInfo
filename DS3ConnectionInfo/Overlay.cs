@@ -25,7 +25,6 @@ namespace DS3ConnectionInfo
                     (bool)settings["showRegion"]
                 );
                 window.Closed += (s, e) => Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
-
                 window.Show();
                 Dispatcher.Run();
             });

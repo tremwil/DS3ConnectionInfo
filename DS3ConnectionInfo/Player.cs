@@ -72,9 +72,8 @@ namespace DS3ConnectionInfo
 
         private static string FixedPersonaName(ulong steamID)
         {
-            byte[] wrong = Encoding.Unicode.GetBytes(SteamApi.SteamFriends.GetFriendPersonaName(steamID));
-            byte[] original = Enumerable.Range(0, wrong.Length / 2).Select(i => wrong[2*i]).ToArray();
-            return Encoding.UTF8.GetString(original);
+            byte[] origBytes = Encoding.Default.GetBytes(SteamApi.SteamFriends.GetFriendPersonaName(steamID));
+            return Encoding.UTF8.GetString(origBytes);
         }
 
         private void UpdateNetInfo(P2PSessionState_t session)

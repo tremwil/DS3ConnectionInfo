@@ -36,7 +36,32 @@ namespace DS3ConnectionInfo
         public double Scale { get; set; }
         public bool ShowRegion { get; set; }
 
-        public string overlayString = "";
+        public object lockObj = new object();
+
+        private class Cell
+        {
+            public string text;
+            public Brush color;
+            public bool mcol;
+
+            public FormattedText fmt;
+
+            public Cell(string text)
+            {
+                this.text = text;
+                this.mcol = false;
+                this.color = Brushes.White;
+            }
+
+            public Cell(string text, bool mcol, Brush color)
+            {
+                this.text = text;
+                this.mcol = mcol;
+                this.color = color;
+            }
+        }
+
+        private Cell[,] overlayCells;
 
         public OverlayWindow(Point offset, double scale, bool showRegion)
         {
@@ -60,7 +85,16 @@ namespace DS3ConnectionInfo
             int exStyle = WinAPI.GetWindowLongPtr(interopHelper.Handle, -20).ToInt32();
             WinAPI.SetWindowLongPtr(interopHelper.Handle, -20, new IntPtr(exStyle | 0x80 | 0x20));
 
-            targetHandle = WinAPI.FindWindow(null, "DARK SOULS III");
+            int pidDS3 = Process.GetProcessesByName("DarkSoulsIII")[0].Id;
+
+            targetHandle = IntPtr.Zero;
+            do
+            {
+                targetHandle = WinAPI.FindWindowEx(IntPtr.Zero, targetHandle, null, "DARK SOULS III");
+                WinAPI.GetWindowThreadProcessId(targetHandle, out uint pid);
+                if (pid == pidDS3) break;
+            } while (targetHandle != IntPtr.Zero);
+
             if (USE_TOPMOST)
             {
                 WinAPI.SetWindowZOrder(interopHelper.Handle, new IntPtr(-1), 0x010);
@@ -70,7 +104,6 @@ namespace DS3ConnectionInfo
                 interopHelper.Owner = targetHandle;
                 WinAPI.SetWindowZOrder(interopHelper.Handle, targetHandle, 0x210);
             }
-
         }
 
         private void Update(object sender, EventArgs e)
@@ -94,44 +127,94 @@ namespace DS3ConnectionInfo
 
             Task.Run(() =>
             {
-                string str = "DS3ConnectionInfo V3 - By tremwil";
-
                 Player[] activePlayers = Player.ActivePlayers().ToArray();
+                Cell[,] newCells = new Cell[activePlayers.Length + 1, ShowRegion ? 3 : 2];
+                newCells[0, 0] = new Cell("DS3ConnectionInfo V3.1 - by tremwil", true, Brushes.White);
+
                 if (activePlayers.Length != 0)
                 {
-                    string[] fmtNames = activePlayers.Select(p => p.SteamName + 
-                        ((p.CharName == "") ? "" : " (" + p.CharName + ")")
-                    ).ToArray();
-
-                    int colSz = fmtNames.Select(name => name.Length).Max();
                     for (int i = 0; i < activePlayers.Length; i++)
                     {
                         Player p = activePlayers[i];
-                        str += string.Format("\n{0,-" + colSz.ToString() + "}  {1,-3}  ",
-                            fmtNames[i], (p.Ip == null) ? "N/A" : p.Ping.ToString()
-                        );
-                        if (ShowRegion) str += (p.Ip == null) ? "[STEAM RELAY]" : p.Region;
+                        newCells[i + 1, 0] = new Cell(p.SteamName + ((p.CharName == "") ? "" : " (" + p.CharName + ")"));
+                        newCells[i + 1, 1] = new Cell(p.Ping.ToString(), false, pingColor(p.Ping));
+
+                        if (ShowRegion) 
+                           newCells[i + 1, 2] = new Cell((p.Ip == null) ? "[STEAM RELAY]" : p.Region);
                     }
                 }
-                Dispatcher.Invoke(() => overlayString = str);
+                Dispatcher.Invoke(() => overlayCells = newCells);
             });
 
             InvalidateVisual();
+        }
+
+        private Brush pingColor(int ping)
+        {
+            switch (ping)
+            {
+                case -1:
+                    return Brushes.White;
+                case int n when (n <= 50):
+                    return Brushes.Blue;
+                case int n when (n <= 100):
+                    return Brushes.Green;
+                case int n when (n <= 200):
+                    return Brushes.Yellow;
+                default:
+                    return Brushes.Red;
+            }
         }
 
         protected override void OnRender(DrawingContext ctx)
         {
             base.OnRender(ctx);
 
-            if (!USE_TOPMOST || WinAPI.GetForegroundWindow() == targetHandle)
+            if (!USE_TOPMOST || WinAPI.GetForegroundWindow() == targetHandle && overlayCells != null)
             {
-                FormattedText txt = new FormattedText(overlayString, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), Scale * Width / 128, Brushes.White, 1);
+                lock (lockObj)
+                {
+                    var padText = new FormattedText("AA", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), Scale * Width / 128, Brushes.White, 1);
+                    double padX = padText.WidthIncludingTrailingWhitespace;
+                    double padY = padText.Height;
 
-                Point origin = new Point((1 - TextOffset.X) * Width - txt.Width, TextOffset.Y * Height);
-                Geometry outline = txt.BuildGeometry(origin);
+                    foreach (Cell c in overlayCells)
+                        if (c != null) 
+                            c.fmt = new FormattedText(c.text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), Scale * Width / 128, c.color, 1);
 
-                ctx.DrawGeometry(Brushes.White, new Pen(Brushes.Black, 2), outline);
-                ctx.DrawText(txt, origin);
+                    double[] colWidths = new double[overlayCells.GetLength(1)];
+                    for (int col = 0; col < overlayCells.GetLength(1); col++)
+                    {
+                        colWidths[col] = Enumerable.Range(0, overlayCells.GetLength(0)).Select(row =>
+                            (overlayCells[row,col] == null || overlayCells[row,col].mcol) ? 0 : overlayCells[row, col].fmt.Width
+                        ).Max();
+                    }
+                    double mcolMax = Enumerable.Range(0, overlayCells.GetLength(0)).Select(row =>
+                        (overlayCells[row, 0] == null || !overlayCells[row, 0].mcol) ? 0 : overlayCells[row, 0].fmt.Width
+                    ).Max();
+
+                    double totalWidth = Math.Max((overlayCells.GetLength(1) - 1) * padX + colWidths.Sum(), mcolMax);
+                    
+                    Pen outlinePen = new Pen(Brushes.Black, 2);
+                    Vector offset = new Vector();
+                    Point origin = new Point((1 - TextOffset.X) * Width - totalWidth, TextOffset.Y * Height);
+
+                    for (int row = 0; row < overlayCells.GetLength(0); row++)
+                    {
+                        offset = new Vector(0, row * padY); 
+                        for (int col = 0; col < overlayCells.GetLength(1); col++)
+                        {
+                            Cell c = overlayCells[row, col];
+                            if (c != null)
+                            {
+                                Geometry outline = c.fmt.BuildGeometry(origin + offset);
+                                ctx.DrawGeometry(c.color, outlinePen, outline);
+                                ctx.DrawText(c.fmt, origin + offset);
+                            }
+                            offset.X += colWidths[col] + padX;
+                        }
+                    }
+                }
             }
         }
     }
