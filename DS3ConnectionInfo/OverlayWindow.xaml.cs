@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Globalization;
 using System.Windows.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace DS3ConnectionInfo
 {
@@ -30,13 +31,13 @@ namespace DS3ConnectionInfo
         private IntPtr targetHandle;
         private DispatcherTimer timer;
         private WindowInteropHelper interopHelper;
-        public bool OverlayEnabled { get; private set; }
 
-        public Point TextOffset { get; set; }
-        public double Scale { get; set; }
-        public bool ShowRegion { get; set; }
+        private bool borderless;
+        private Point textOffset;
+        private double scale;
+        private bool showRegion;
 
-        public object lockObj = new object();
+        private object lockObj = new object();
 
         private class Cell
         {
@@ -63,15 +64,15 @@ namespace DS3ConnectionInfo
 
         private Cell[,] overlayCells;
 
-        public OverlayWindow(Point offset, double scale, bool showRegion)
+        public OverlayWindow(JObject settings)
         {
             InitializeComponent();
             interopHelper = new WindowInteropHelper(this);
-            TextOffset = new Point(0.025, 0.025);
 
-            TextOffset = offset;
-            Scale = scale;
-            ShowRegion = showRegion;
+            borderless = (bool)settings["borderless"];
+            textOffset = new Point((double)settings["xOffset"], (double)settings["yOffset"]);
+            scale = (double)settings["textScale"];
+            showRegion = (bool)settings["showRegion"];
 
             timer = new DispatcherTimer();
             timer.Tick += Update;
@@ -95,6 +96,9 @@ namespace DS3ConnectionInfo
                 if (pid == pidDS3) break;
             } while (targetHandle != IntPtr.Zero);
 
+            if (borderless)
+                MakeWindowBorderless(targetHandle);
+
             if (USE_TOPMOST)
             {
                 WinAPI.SetWindowZOrder(interopHelper.Handle, new IntPtr(-1), 0x010);
@@ -104,6 +108,14 @@ namespace DS3ConnectionInfo
                 interopHelper.Owner = targetHandle;
                 WinAPI.SetWindowZOrder(interopHelper.Handle, targetHandle, 0x210);
             }
+        }
+
+        private void MakeWindowBorderless(IntPtr target)
+        {
+            int w = WinAPI.GetSystemMetrics(0); // SM_CXSCREEN
+            int h = WinAPI.GetSystemMetrics(1); // SM_CYSCREEN
+            WinAPI.SetWindowLongPtr(target, -16, new IntPtr(0x90000000L)); // POPUP | VISIBLE
+            WinAPI.SetWindowPos(target, IntPtr.Zero, 0, 0, w, h, 0x20); // SWP_FRAMECHANGED
         }
 
         private void Update(object sender, EventArgs e)
@@ -128,7 +140,7 @@ namespace DS3ConnectionInfo
             Task.Run(() =>
             {
                 Player[] activePlayers = Player.ActivePlayers().ToArray();
-                Cell[,] newCells = new Cell[activePlayers.Length + 1, ShowRegion ? 3 : 2];
+                Cell[,] newCells = new Cell[activePlayers.Length + 1, showRegion ? 3 : 2];
                 newCells[0, 0] = new Cell("DS3ConnectionInfo V3.1 - by tremwil", true, Brushes.White);
 
                 if (activePlayers.Length != 0)
@@ -139,7 +151,7 @@ namespace DS3ConnectionInfo
                         newCells[i + 1, 0] = new Cell(p.SteamName + ((p.CharName == "") ? "" : " (" + p.CharName + ")"));
                         newCells[i + 1, 1] = new Cell(p.Ping.ToString(), false, pingColor(p.Ping));
 
-                        if (ShowRegion) 
+                        if (showRegion) 
                            newCells[i + 1, 2] = new Cell((p.Ip == null) ? "[STEAM RELAY]" : p.Region);
                     }
                 }
@@ -156,13 +168,13 @@ namespace DS3ConnectionInfo
                 case -1:
                     return Brushes.White;
                 case int n when (n <= 50):
-                    return Brushes.Blue;
+                    return Brushes.DeepSkyBlue;
                 case int n when (n <= 100):
-                    return Brushes.Green;
+                    return Brushes.LawnGreen;
                 case int n when (n <= 200):
                     return Brushes.Yellow;
                 default:
-                    return Brushes.Red;
+                    return Brushes.IndianRed;
             }
         }
 
@@ -174,13 +186,13 @@ namespace DS3ConnectionInfo
             {
                 lock (lockObj)
                 {
-                    var padText = new FormattedText("AA", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), Scale * Width / 128, Brushes.White, 1);
+                    var padText = new FormattedText("AA", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), scale * Width / 128, Brushes.White, 1);
                     double padX = padText.WidthIncludingTrailingWhitespace;
                     double padY = padText.Height;
 
                     foreach (Cell c in overlayCells)
                         if (c != null) 
-                            c.fmt = new FormattedText(c.text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), Scale * Width / 128, c.color, 1);
+                            c.fmt = new FormattedText(c.text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Segoe"), scale * Width / 128, c.color, 1);
 
                     double[] colWidths = new double[overlayCells.GetLength(1)];
                     for (int col = 0; col < overlayCells.GetLength(1); col++)
@@ -197,7 +209,7 @@ namespace DS3ConnectionInfo
                     
                     Pen outlinePen = new Pen(Brushes.Black, 2);
                     Vector offset = new Vector();
-                    Point origin = new Point((1 - TextOffset.X) * Width - totalWidth, TextOffset.Y * Height);
+                    Point origin = new Point((1 - textOffset.X) * Width - totalWidth, textOffset.Y * Height);
 
                     for (int row = 0; row < overlayCells.GetLength(0); row++)
                     {

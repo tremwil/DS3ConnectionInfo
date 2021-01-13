@@ -1,6 +1,12 @@
 "overlay" (boolean): Turns the in-game overlay on (true) or off (false). Note that
 the overlay only works in windowed mode.
 
+"borderless" (boolean): If set to true (the default value), will make the Dark 
+Souls III window borderless and align it with the monitor. This allows one to use 
+the overlay while the game looks like it's in fullscreen mode. 
+**BE SURE TO SET SCREEN MODE TO WINDOWED AND RESOLUTION TO THAT OF YOUR MONITOR 
+IN THE DARK SOULS III SETTINGS!**
+
 "showRegion" (boolean): If true, will also display region information on the 
 overlay as is done in the console. This is false by default to allow for 
 gameplay footage to be shared without the risk of spreading private information.
@@ -14,7 +20,9 @@ of the textbox at 200 pixels from the right of the window. Default value is
 "yOffset" (number): The vertical offset of the first line of text from the top 
 of the game window, as a fraction of the window's height. For example, a value 
 of 0.1 with a window height of 1000 pixels would fix the first line of text
-100 pixels from the top of the window. Default value is 0.05.
+100 pixels from the top of the window. Default value is 0.025. If playing
+in windowed mode with the "borderless" option set to false, you might
+want to increase this value slightly (around 0.05).
 
 "textScale" (number): Controls the font size of the text in the overlay as a 
 multiple of the default font size. The default font size scales dynamically 

@@ -159,6 +159,9 @@ namespace DS3ConnectionInfo
         public static extern bool IsWindowVisible(IntPtr hWnd);
 
         [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int smIndex);
+
+        [DllImport("user32.dll")]
         public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
         [DllImport("user32.dll")]

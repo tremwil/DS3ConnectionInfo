@@ -19,11 +19,7 @@ namespace DS3ConnectionInfo
         {
             overlayThread = new Thread(() =>
             {
-                window = new OverlayWindow(
-                    new Point((double)settings["xOffset"], (double)settings["yOffset"]),
-                    (double)settings["textScale"],
-                    (bool)settings["showRegion"]
-                );
+                window = new OverlayWindow(settings);
                 window.Closed += (s, e) => Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
                 window.Show();
                 Dispatcher.Run();

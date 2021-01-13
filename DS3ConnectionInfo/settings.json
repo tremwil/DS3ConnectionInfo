@@ -1,7 +1,8 @@
 {
-	"overlay"   : true,
+	"overlay": true,
+	"borderless": true,
 	"showRegion": false,
-	"xOffset"   : 0.025,
-	"yOffset"   : 0.05,
-	"textScale" : 1.0 
+	"xOffset": 0.025,
+	"yOffset": 0.025,
+	"textScale": 1.0
 }

@@ -24,6 +24,10 @@
     />
   </Target>
 
+  <Target Name="ResetSettings" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="settings.json; settings_readme.txt" DestinationFolder="$(OutputPath)"></Copy>
+  </Target>
+
   <Target Name="PostRepackCleanup" AfterTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
       <FilesToMove1 Include="$(OutputPath)SteamworksSharp.Native*.dll"></FilesToMove1>

@@ -24,7 +24,7 @@ namespace DS3ConnectionInfo
             JObject settings = JObject.Parse(File.ReadAllText("settings.json"));
 
             Console.CursorVisible = false;
-            Console.Title = "DS3 Connection Info V3.1";
+            Console.Title = "DS3 Connection Info V3.2";
 
             SteamNative.Initialize();
             mem = new MemoryManager();
