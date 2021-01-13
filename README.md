@@ -1,7 +1,7 @@
 # DS3ConnectionInfo
 Simple console program showing active P2P connection information along ping and geolocation for Dark Souls III. In a game whose PvP is highly dependent on spacing and timing, knowing the latency between you and your opponent before the fight can be pretty useful. Also implements a simple in-game overlay (**windowed mode only**).
 
-## [Download](https://github.com/tremwil/DS3ConnectionInfo/releases/download/V3.0/DS3ConnectionInfo-V3.zip)
+## [Download](https://github.com/tremwil/DS3ConnectionInfo/releases/download/V3.1/DS3ConnectionInfo-V3.1.zip)
 
 ## DISCLAIMER: 
 **Do not share the location information provided by this program. While you should be free to view it yourself since the players are connected to your computer, respect the privacy of others. I am not responsible for any misuse of this information.**
@@ -17,21 +17,21 @@ Download the lastest release from the Releases tab and extract the ZIP file in a
 ### Is it bannable?
 It is 100% ban-safe, as the program does not modify the game's memory in any way. 
 
-### Why does it require administrator privileges? (V2)
-In V2, the pings are computed by monitoring STUN packets that are sent to and recieved from the players' IPs. This is more accurate and updates faster than the 
+### Why does it require administrator privileges? (V2+)
+In V2+, the pings are computed by monitoring STUN packets that are sent to and recieved from the players' IPs. This is more accurate and updates faster than the 
 traceroute method used in V1. However, to capture these packets I use Event Tracing for Windows (ETW), which requires administrator privileges for "kernel" events like networking. 
 
 ### Why does the program close when the game does?
 Since the code uses the Steam API with DS3's Steam App ID, letting the program run after the game closes would make Steam think the it is still running. Calling `SteamAPI_Shutdown` does not seem to fix the problem, so we have to close the process. A DLL mod could make this seamless, but making an external program is simpler and doesn't require ban testing.
 
 ### Why show the location of players?
-The ping system used in V1 could sometimes be inaccurate due to early network nodes blocking ping packets. Showing basic geolocation information could help to get a more reliable idea of the latency in that case. With V2 this is no longer necessary, but since it is still possible to access the old release and source I have 
+The ping system used in V1 could sometimes be inaccurate due to early network nodes blocking ping packets. Showing basic geolocation information could help to get a more reliable idea of the latency in that case. With V2+ this is no longer necessary, but since it is still possible to access the old release and source I have 
 decided to keep this feature in. When playing any direct P2P game such as Dark Souls III you should be aware that your public IP address (which is linked to your location) is transmitted to other players. **This is not a security exploit.** Use a VPN if you wish to keep this information private.
 
 ### I found a bug / I have something to say about the mod
 Feel free to open an issue on this Github or direct message me on discord at tremwil#3713.
 
-# How it works (V2)
+# How it works (V2+)
 The Steam API is used to query the Steam ID of recently met players. Using `GetP2PSessionState`, we are able to query if each player is currently connected and get
 the remote IP address. This is then matched to the slot and character name from the game's memory. The reason for using recently met players instead of simply
 reading the Steam ID from the game's memory is that the latter can be spoofed by players (for example when running the PyreProtecc anti cheat). To calculate the pings, ETW (Event Tracing for Windows) networking events are monitored to find when STUN packets are sent to and recieved from player IPs. The region-specific geolocating comes from [ip-api](https://ip-api.com).
