@@ -141,7 +141,7 @@ namespace DS3ConnectionInfo
             {
                 Player[] activePlayers = Player.ActivePlayers().ToArray();
                 Cell[,] newCells = new Cell[activePlayers.Length + 1, showRegion ? 3 : 2];
-                newCells[0, 0] = new Cell("DS3ConnectionInfo V3.1 - by tremwil", true, Brushes.White);
+                newCells[0, 0] = new Cell("DS3ConnectionInfo V3.2 - by tremwil", true, Brushes.White);
 
                 if (activePlayers.Length != 0)
                 {
