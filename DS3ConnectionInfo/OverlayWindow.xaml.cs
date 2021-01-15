@@ -157,7 +157,7 @@ namespace DS3ConnectionInfo
                     for (int i = 0; i < activePlayers.Length; i++)
                     {
                         Player p = activePlayers[i];
-                        if (p.CharName == "")
+                        if (p.CharSlot == "")
                             newCells[i + 1, 0] = new Cell(formatNames(nameFormatNoIgn, p), false, Brushes.Orange);
                         else
                             newCells[i + 1, 0] = new Cell(formatNames(nameFormat, p));
