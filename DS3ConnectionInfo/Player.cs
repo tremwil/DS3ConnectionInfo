@@ -12,7 +12,7 @@ using System.Globalization;
 
 namespace DS3ConnectionInfo
 {
-    class Player
+    public class Player
     {
         private const long baseB = 0x4768E78;
 

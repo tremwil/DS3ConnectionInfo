@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,8 +34,12 @@ namespace DS3ConnectionInfo
         private WindowInteropHelper interopHelper;
 
         private bool borderless;
+        private string corner;
         private Point textOffset;
         private double scale;
+
+        private string nameFormat;
+        private string nameFormatNoIgn;
         private bool showRegion;
 
         private object lockObj = new object();
@@ -70,8 +75,12 @@ namespace DS3ConnectionInfo
             interopHelper = new WindowInteropHelper(this);
 
             borderless = (bool)settings["borderless"];
+            corner = (string)settings["originCorner"];
             textOffset = new Point((double)settings["xOffset"], (double)settings["yOffset"]);
             scale = (double)settings["textScale"];
+
+            nameFormat = (string)settings["nameFormat"];
+            nameFormatNoIgn = (string)settings["nameFormatNoIGN"];
             showRegion = (bool)settings["showRegion"];
 
             timer = new DispatcherTimer();
@@ -141,14 +150,18 @@ namespace DS3ConnectionInfo
             {
                 Player[] activePlayers = Player.ActivePlayers().ToArray();
                 Cell[,] newCells = new Cell[activePlayers.Length + 1, showRegion ? 3 : 2];
-                newCells[0, 0] = new Cell("DS3ConnectionInfo V3.2 - by tremwil", true, Brushes.White);
+                newCells[0, 0] = new Cell("DS3ConnectionInfo V3.3 - by tremwil", true, Brushes.White);
 
                 if (activePlayers.Length != 0)
                 {
                     for (int i = 0; i < activePlayers.Length; i++)
                     {
                         Player p = activePlayers[i];
-                        newCells[i + 1, 0] = new Cell(p.SteamName + ((p.CharName == "") ? "" : " (" + p.CharName + ")"));
+                        if (p.CharName == "")
+                            newCells[i + 1, 0] = new Cell(formatNames(nameFormatNoIgn, p), false, Brushes.Orange);
+                        else
+                            newCells[i + 1, 0] = new Cell(formatNames(nameFormat, p));
+
                         newCells[i + 1, 1] = new Cell(p.Ping.ToString(), false, pingColor(p.Ping));
 
                         if (showRegion) 
@@ -161,7 +174,38 @@ namespace DS3ConnectionInfo
             InvalidateVisual();
         }
 
-        private Brush pingColor(int ping)
+        public static string formatNames(string fmt, Player p)
+        {
+            Regex r = new Regex("\\{(?<key>\\w*)(?:,(?<len>\\d+))?\\}");
+            StringBuilder b = new StringBuilder();
+            Dictionary<string, string> map = new Dictionary<string, string>
+            {
+                { "SteamName", p.SteamName },
+                { "CharName", p.CharName }
+            };
+
+            for (int i = 0; i < fmt.Length; )
+            {
+                Match m = r.Match(fmt, i);
+                if (!m.Success || !map.ContainsKey(m.Groups["key"].Value))
+                {
+                    b.Append(fmt.Substring(i));
+                    break;
+                }
+
+                b.Append(fmt.Substring(i, m.Index - i));
+
+                string val = map[m.Groups["key"].Value];
+                int maxLen = (m.Groups["len"].Length == 0) ? val.Length : int.Parse(m.Groups["len"].Value);
+                b.Append(val.Length > maxLen ? val.Substring(0, maxLen) + "..." : val);
+                
+                i = m.Index + m.Length;
+            }
+
+            return b.ToString();
+        }
+
+        public Brush pingColor(int ping)
         {
             switch (ping)
             {
@@ -209,7 +253,10 @@ namespace DS3ConnectionInfo
                     
                     Pen outlinePen = new Pen(Brushes.Black, 2);
                     Vector offset = new Vector();
-                    Point origin = new Point((1 - textOffset.X) * Width - totalWidth, textOffset.Y * Height);
+                    Point origin = new Point(
+                        corner.Contains("left") ? textOffset.X * Width : (1 - textOffset.X) * Width - totalWidth, 
+                        corner.Contains("top") ? textOffset.Y * Height : (1 - textOffset.Y) * Height - overlayCells.GetLength(0) * padX
+                    );
 
                     for (int row = 0; row < overlayCells.GetLength(0); row++)
                     {

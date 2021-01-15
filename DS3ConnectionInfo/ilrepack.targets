@@ -25,7 +25,7 @@
   </Target>
 
   <Target Name="ResetSettings" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Copy SourceFiles="settings.json; settings_readme.txt" DestinationFolder="$(OutputPath)"></Copy>
+    <Copy SourceFiles="settings.txt;" DestinationFolder="$(OutputPath)"></Copy>
   </Target>
 
   <Target Name="PostRepackCleanup" AfterTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
@@ -39,6 +39,6 @@
       <FilesToMove2 Include="$(OutputPath)amd64\SteamworksSharp.Native*.dll"></FilesToMove2>
     </ItemGroup>
     <Move SourceFiles="@(FilesToMove2)" DestinationFolder="$(OutputPath)"></Move>
-    <Copy SourceFiles="settings.json; settings_readme.txt" DestinationFolder="$(OutputPath)"></Copy>
+    <Copy SourceFiles="settings.txt;" DestinationFolder="$(OutputPath)"></Copy>
   </Target>
 </Project>

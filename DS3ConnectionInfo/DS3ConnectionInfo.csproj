@@ -115,16 +115,13 @@
     <None Include="app.manifest" />
     <None Include="ilrepack.targets" />
     <None Include="packages.config" />
-    <None Include="settings.json" />
+    <Content Include="settings.txt" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="OverlayWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="settings_readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
