@@ -226,7 +226,7 @@ namespace DS3ConnectionInfo
         {
             base.OnRender(ctx);
 
-            if (!USE_TOPMOST || WinAPI.GetForegroundWindow() == targetHandle && overlayCells != null)
+            if (overlayCells != null && (!USE_TOPMOST || WinAPI.GetForegroundWindow() == targetHandle))
             {
                 lock (lockObj)
                 {
