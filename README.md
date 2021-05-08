@@ -24,6 +24,9 @@ well in practice, it has some disadvantages:
 - It is still possible to connect to unacceptably laggy players, if others in the session have a good ping. I am aware of this, and will add an absolute ping threshold in the future. I didn't add one because I thought it would reduce online acitivty too much.
 - The ping filter is useless for hosts. **This is by design**. I did not want to implement any kind of targeted kick functionality into the program, especially since it is open source.
 
+### Are the pings shown accurate if the other player is using a VPN?
+**Yes**, if V2+ is used. Since the pings are not calculated by pinging the remote IP but rather by listening for STUN reply packets coming from the remote game, using a VPN will not show an incorrect ping. The location information, however, does use the remote IP, and can be hidden using a VPN.
+
 ### Why does it require administrator privileges? (V2+)
 In V2+, the pings are computed by monitoring STUN packets that are sent to and recieved from the players' IPs. This is more accurate and updates faster than the 
 traceroute method used in V1. However, to capture these packets I use Event Tracing for Windows (ETW), which requires administrator privileges for "kernel" events like networking. 
