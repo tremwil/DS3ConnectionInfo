@@ -7,8 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DS3ConnectionInfo", "DS3ConnectionInfo\DS3ConnectionInfo.csproj", "{A4512F87-F19E-4CD4-9FA1-EBB6C514BE77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DS3ConnectionInfoV3", "DS3ConnectionInfoV3\DS3ConnectionInfoV3.csproj", "{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,18 +29,6 @@ Global
 		{A4512F87-F19E-4CD4-9FA1-EBB6C514BE77}.Release|x64.Build.0 = Release|Any CPU
 		{A4512F87-F19E-4CD4-9FA1-EBB6C514BE77}.Release|x86.ActiveCfg = Release|Any CPU
 		{A4512F87-F19E-4CD4-9FA1-EBB6C514BE77}.Release|x86.Build.0 = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|x64.Build.0 = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Debug|x86.Build.0 = Debug|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|x64.ActiveCfg = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|x64.Build.0 = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|x86.ActiveCfg = Release|Any CPU
-		{B4B03E67-40BC-400C-AA2A-AEF13B5D5130}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
