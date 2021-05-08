@@ -48,9 +48,8 @@ namespace DS3ConnectionInfo
                 {
                     JObject data = JObject.Parse(reader.ReadToEnd());
                     if (data["status"].ToString() == "success")
-                    {   // Issue #2 Fix: For city-states (e.g. Singapore), regionName is empty
-                        return (data["regionName"].ToString() == "") ? data["country"].ToString() :
-                            string.Format("{0}, {1}", data["regionName"], data["country"]);
+                    {
+                        return string.Format("{0}, {1}", data["regionName"], data["country"]);
                     }
                     return "GEOLOCATION FAIL: " + data["message"].ToString();
                 }

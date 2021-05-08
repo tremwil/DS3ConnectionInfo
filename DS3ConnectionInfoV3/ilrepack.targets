@@ -3,12 +3,10 @@
   <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
       <InputAssemblies Include="$(OutputPath)DS3ConnectionInfo.exe" />
-      <InputAssemblies Include="$(OutputPath)MahApps.Metro.dll" />
-      <InputAssemblies Include="$(OutputPath)de\MahApps.Metro.resources.dll" />
-      <InputAssemblies Include="$(OutputPath)ControlzEx.dll" />
+      <InputAssemblies Include="$(OutputPath)Alba.CsConsoleFormat.dll" />
       <InputAssemblies Include="$(OutputPath)Dia2Lib.dll" />
       <InputAssemblies Include="$(OutputPath)Microsoft*.dll" />
-      <InputAssemblies Include="$(OutputPath)Steamworks.NET.dll" />
+      <InputAssemblies Include="$(OutputPath)SteamworksSharp.dll" />
       <InputAssemblies Include="$(OutputPath)Newtonsoft.Json.dll" />
       <InputAssemblies Include="$(OutputPath)OSExtensions.dll" />
       <InputAssemblies Include="$(OutputPath)System*.dll" />
@@ -21,21 +19,26 @@
         Wildcards="true"
         InternalizeExclude="@(DoNotInternalizeAssemblies)"
         InputAssemblies="@(InputAssemblies)"
-        TargetKind="WinExe"
-        OutputFile="$(OutputPath)$(AssemblyName).exe"
+        TargetKind="Exe"
+        OutputFile="$(OutputPath)\$(AssemblyName).exe"
     />
   </Target>
 
-  <Target Name="PostBuildDebug" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Copy SourceFiles="$(ProjectDir)steamworks_bin\steam_api64.dll" DestinationFolder="$(OutputPath)"></Copy>
+  <Target Name="ResetSettings" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="settings.txt;" DestinationFolder="$(OutputPath)"></Copy>
   </Target>
 
-  <Target Name="PostRepack" AfterTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
+  <Target Name="PostRepackCleanup" AfterTargets="ILRepack" Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
+      <FilesToMove1 Include="$(OutputPath)SteamworksSharp.Native*.dll"></FilesToMove1>
       <FilesToDelete Include="$(OutputPath)*.dll; $(OutputPath)*.pdb; $(OutputPath)*.xml; $(OutputPath)*.config"/>
     </ItemGroup>
+    <Move SourceFiles="@(FilesToMove1)" DestinationFolder="$(OutputPath)amd64"></Move>
     <Delete Files="@(FilesToDelete)"></Delete>
-    <RemoveDir Directories="$(OutputPath)x86; $(OutputPath)de"></RemoveDir>
-    <Copy SourceFiles="$(ProjectDir)steamworks_bin\steam_api64.dll" DestinationFolder="$(OutputPath)"></Copy>
+    <ItemGroup>
+      <FilesToMove2 Include="$(OutputPath)amd64\SteamworksSharp.Native*.dll"></FilesToMove2>
+    </ItemGroup>
+    <Move SourceFiles="@(FilesToMove2)" DestinationFolder="$(OutputPath)"></Move>
+    <Copy SourceFiles="settings.txt;" DestinationFolder="$(OutputPath)"></Copy>
   </Target>
 </Project>

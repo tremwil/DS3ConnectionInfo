@@ -13,27 +13,40 @@ namespace DS3ConnectionInfo
 {
     public static class ETWPingMonitor
     {
+        public const int N_SAMPLES = 10;
+
         private class PingInfo
         {
-            public double tPacketSent, tLastRecv, ping;
+            public double tFirstSend = -1; // Timestamp of first sent STUN packet
+            public double tStunSent = -1; // Timestamp of last sent STUN packet
+            public double tLastStunRecv = -1; // Timestamp of last recv STUN packet
+            public double ping = -1; // Current ping
 
-            public PingInfo(double ctime)
+            public double avgPing = 0; // average ping over last N_SAMPLES
+            public double jitter = 0; // jitter (stdev of ping) over last N_SAMPLES
+            public double[] pingSamples;
+
+            public int cnt = 0; // Number of ping packets which came back
+            public int stunSentCnt = 0; // Number of STUN packets sent
+            public int stunLateCnt = 0; // Number sent after the previous one had not been recieved
+
+            public PingInfo()
             {
-                tLastRecv = ctime;
-                tPacketSent = ping = -1;
+                pingSamples = new double[N_SAMPLES];
             }
         }
 
         private static TraceEventSession kernelSession;
         private static Thread eventThread;
         public static bool Running { get; private set; }
-
-        private static Dictionary<IPAddress, PingInfo> pings;
+        private static Dictionary<ulong, PingInfo> pings;
+        private static readonly object lockObj;
 
         static ETWPingMonitor()
         {
             Running = false;
-            pings = new Dictionary<IPAddress, PingInfo>();
+            lockObj = new object();
+            pings = new Dictionary<ulong, PingInfo>();
         }
 
         /// <summary>
@@ -69,37 +82,149 @@ namespace DS3ConnectionInfo
             kernelSession.Stop();
         }
 
-        public static double GetPing(IPAddress ip)
+        /// <summary>
+        /// Begin tracking the ping to a remote endpoint. Net ID given by (port << 32) | ipv4.
+        /// If netId already is being monitored, will reset average ping.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="port"></param>
+        public static void Register(ulong netId)
         {
-            return pings.ContainsKey(ip) ? pings[ip].ping : -1;
+            lock (lockObj)
+            {
+                pings[netId] = new PingInfo();
+            }
+        }
+
+        /// <summary>
+        /// Stop tracking the ping to a remote endpoint. Net ID given by (port << 32) | ipv4.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="port"></param>
+        public static void Unregister(ulong netId)
+        {
+            lock (lockObj)
+            {
+                pings.Remove(netId);
+            }
+        }
+
+        /// <summary>
+        /// Get the average ping to the provided endpoint, or -1 if none exists.
+        /// Net ID given by (port << 32) | ipv4.
+        /// </summary>
+        /// <param name="netId"></param>
+        /// <returns></returns>
+        public static double GetPing(ulong netId)
+        {
+            lock (lockObj)
+            {
+                return pings.ContainsKey(netId) ? pings[netId].ping : -1;
+            }
+        }
+
+        /// <summary>
+        /// Get the average ping over N_SAMPLES to the provided endpoint, or -1 if none exists.
+        /// Net ID given by (port << 32) | ipv4.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public static double GetAveragePing(ulong netId)
+        {
+            lock (lockObj)
+            {
+                return pings.ContainsKey(netId) ? pings[netId].avgPing : -1;
+            }
+        }
+
+        /// <summary>
+        /// Get the jitter to the provided endpoint, or -1 if none exists.
+        /// Net ID given by (port << 32) | ipv4.
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public static double GetJitter(ulong netId)
+        {
+            lock (lockObj)
+            {
+                return pings.ContainsKey(netId) ? pings[netId].jitter : -1;
+            }
+        }
+
+        /// <summary>
+        /// Get [stun packet sent before reply]/[stun packets sent], as a percentage.
+        /// </summary>
+        /// <param name="netId"></param>
+        /// <returns></returns>
+        public static double GetLatePacketRatio(ulong netId)
+        {
+            lock (lockObj)
+            {
+                return (pings.ContainsKey(netId) && pings[netId].stunSentCnt > 0) ? pings[netId].stunLateCnt * 100d / pings[netId].stunSentCnt : -1;
+            }
         }
 
         private static void Kernel_UdpIpSend(UdpIpTraceData packet)
         {
             if (packet.size == 56)
             {
-                if (!pings.ContainsKey(packet.daddr))
-                    pings[packet.daddr] = new PingInfo(packet.TimeStampRelativeMSec);
+                uint ipv4 = BitConverter.ToUInt32(packet.daddr.MapToIPv4().GetAddressBytes(), 0);
+                ulong netId = (ulong)packet.dport << 32 | ipv4;
 
-                pings[packet.daddr].tPacketSent = packet.TimeStampRelativeMSec;
-
-                foreach (IPAddress ip in pings.Keys)
+                lock (lockObj)
                 {
-                    if (pings[ip].tLastRecv - packet.TimeStampRelativeMSec > 10000)
-                        pings.Remove(ip);
+                    if (pings.ContainsKey(netId))
+                    {
+                        if (pings[netId].tFirstSend == -1)
+                            pings[netId].tFirstSend = packet.TimeStampRelativeMSec;
+
+                        pings[netId].stunSentCnt++;
+                        // For the first 10 seconds of connection, some STUN packets may be dropped entirely, which messes with the ping
+                        // filter. Assuming late packets were dropped at the beginning helps.
+                        if (pings[netId].tStunSent == -1 || packet.TimeStampRelativeMSec - pings[netId].tFirstSend < 10000)
+                            pings[netId].tStunSent = packet.TimeStampRelativeMSec;
+                        else
+                            pings[netId].stunLateCnt++;
+                    }
                 }
             }
         }
 
         private static void Kernel_UdpIpRecv(UdpIpTraceData packet)
         {
-            if (pings.ContainsKey(packet.saddr) && packet.size == 68)
+            if (packet.size == 68)
             {
-                if (pings[packet.saddr].tPacketSent != -1)
+                uint ipv4 = BitConverter.ToUInt32(packet.saddr.MapToIPv4().GetAddressBytes(), 0);
+                ulong netId = (ulong)packet.sport << 32 | ipv4;
+
+                lock (lockObj)
                 {
-                    pings[packet.saddr].tLastRecv = packet.TimeStampRelativeMSec;
-                    pings[packet.saddr].ping = packet.TimeStampRelativeMSec - pings[packet.saddr].tPacketSent;
-                    pings[packet.saddr].tPacketSent = -1;
+                    if (pings.ContainsKey(netId))
+                    {
+                        if (pings[netId].tStunSent != -1)
+                        {
+                            PingInfo pi = pings[netId];
+
+                            pi.tLastStunRecv = packet.TimeStampRelativeMSec;
+                            pi.ping = packet.TimeStampRelativeMSec - pi.tStunSent;
+
+                            pi.pingSamples[pi.cnt++ % N_SAMPLES] = pi.ping;
+                            if (pi.cnt >= N_SAMPLES)
+                            {   // After N_SAMPLES measurements, compute average ping and jitter
+                                pi.avgPing = 0;
+                                for (int i = 0; i < N_SAMPLES; i++)
+                                    pi.avgPing += pi.pingSamples[i];
+                                pi.avgPing /= N_SAMPLES;
+
+                                pi.jitter = 0;
+                                for (int i = 0; i < N_SAMPLES; i++)
+                                    pi.jitter += Math.Pow(pi.pingSamples[i] - pi.avgPing, 2);
+                                pi.jitter = Math.Sqrt(pi.jitter / N_SAMPLES);
+                            }
+
+                            pings[netId].tStunSent = -1;
+                        }
+                    }
                 }
             }
         }
