@@ -76,28 +76,27 @@ namespace DS3ConnectionInfo
         }
 
         /// <summary>
-        /// Convert a value-type to bytes.
+        /// Convert a value type to bytes, passed as an object.
         /// </summary>
-        /// <typeparam name="T">The struct to convert from.</typeparam>
-        /// <param name="value">The value to convert to bytes.</param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public static byte[] ToBytes<T>(T value) where T : struct
+        public static byte[] ToBytes(object value)
         {
-            object fixedValue = value;
-            Type t = typeof(T);
+            Type t = value.GetType();
+            if (!t.IsEnum && !t.IsValueType)
+                throw new ArgumentException("Provided value cannot be converted to bytes");
 
             if (t.IsEnum)
             {
                 t = Enum.GetUnderlyingType(t);
-                fixedValue = Convert.ChangeType(fixedValue, t);
+                value = Convert.ChangeType(value, t);
             }
-
             byte[] buffer = new byte[Marshal.SizeOf(t)];
             IntPtr handle = Marshal.AllocHGlobal(buffer.Length);
 
             try
             {
-                Marshal.StructureToPtr(fixedValue, handle, false);
+                Marshal.StructureToPtr(value, handle, false);
                 Marshal.Copy(handle, buffer, 0, buffer.Length);
             }
             finally

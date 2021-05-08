@@ -1,0 +1,308 @@
+﻿<mah:MetroWindow x:Class="DS3ConnectionInfo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local="clr-namespace:DS3ConnectionInfo"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Title="DS3 Connection Info [VERSION]" Width="800" Height="450">
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <TextBlock VerticalAlignment="Center" Margin="0 0 10 0">           
+                <Hyperlink NavigateUri="" RequestNavigate="webLink_RequestNavigate" Name="linkUpdate">
+                    <TextBlock FontWeight="Bold" Name="textUpdate"></TextBlock>
+                </Hyperlink>
+            </TextBlock>
+            <Label VerticalAlignment="Center">
+                <TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Text" Value="PING FILTER: OFF"></Setter>
+                            <Setter Property="Foreground" Value="Orange"></Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" Value="True">
+                                    <Setter Property="Text" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing, StringFormat=PING FILTER: {0}}"></Setter>
+                                    <Setter Property="Foreground" Value="LawnGreen"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Label>
+            <Label Content="DS3: CLOSED" Foreground="Orange" VerticalAlignment="Center" Name="labelGameState"></Label>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+    <mah:MetroWindow.Resources>
+        <local:HotkeyConverter x:Key="HotkeyConverter" />
+        <Style x:Key="textCenter" TargetType="{x:Type TextBlock}">
+            <Setter Property="TextAlignment" Value="Center"></Setter>
+        </Style>
+    </mah:MetroWindow.Resources>
+    <Grid>
+        <mah:MetroTabControl Name="tabCtrl">
+            <mah:MetroTabItem Header="Session Info" IsEnabled="True">
+                <DataGrid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Name="dataGridSession" ItemsSource="{Binding}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Slot" IsReadOnly="True" Binding="{Binding CharSlot}" SortDirection="Ascending" ElementStyle="{StaticResource textCenter}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Char. Name" IsReadOnly="True" Binding="{Binding CharName}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Team" IsReadOnly="True" Binding="{Binding TeamName}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Steam Name" IsReadOnly="True" Binding="{Binding SteamName}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="{Binding SteamNameColor}"></Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Overlay Name" IsReadOnly="True" Binding="{Binding OverlayName}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="{Binding SteamNameColor}"></Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Steam ID 64" IsReadOnly="True" Binding="{Binding SteamId64}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Ping" IsReadOnly="True" Binding="{Binding Ping, StringFormat=N0}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="{Binding PingColor}"></Setter>
+                                    <Setter Property="TextAlignment" Value="Center"></Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Avg. Ping" IsReadOnly="True" Binding="{Binding AveragePing, StringFormat=N0}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="{Binding PingColor}"></Setter>
+                                    <Setter Property="TextAlignment" Value="Center"></Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Jitter" IsReadOnly="True" Binding="{Binding Jitter, StringFormat=N1}" ElementStyle="{StaticResource textCenter}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Late Packet %" IsReadOnly="True" Binding="{Binding LatePacketRatio, StringFormat=N1}" ElementStyle="{StaticResource textCenter}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Location" IsReadOnly="True" Binding="{Binding Region}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </mah:MetroTabItem>
+            <mah:MetroTabItem Header="Settings" IsEnabled="True">
+                <StackPanel Margin="10">
+                    <Label FontWeight="Bold" Content="WARNING: This ping filter is very crude, and WILL increase the time it takes to find online activity."/>
+                    <Label>
+                        <TextBlock>When the ping filter is on, the matchmaking hotkeys below will auto reset if the party's
+                        <LineBreak/>average ping is too high. For more info, read the FAQ on the
+                        <Hyperlink NavigateUri="https://github.com/tremwil/DS3ConnectionInfo" RequestNavigate="webLink_RequestNavigate">
+                            Github page</Hyperlink>.
+                        </TextBlock>
+                    </Label>
+                    <StackPanel Orientation="Horizontal">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"></ColumnDefinition>
+                                <ColumnDefinition Width="auto"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Label Content="Ping Filter" Grid.Row="0" Grid.Column="0"></Label>
+                            <mah:ToggleSwitch Grid.Row="0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" 
+                                          OnContent="Enabled" OffContent="Disabled"></mah:ToggleSwitch>
+                            <Label Content="Ping Filter Hotkey" Grid.Row="2" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="2" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=PingFilterHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="Max Average Ping" Grid.Row="4" Grid.Column="0"></Label>
+                            <mah:NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing}" 
+                                           Minimum="0" Interval="10" ParsingNumberStyle="Number"/>
+                            <Label Content="REO Hotkey" Grid.Row="6" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="6" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=REOHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="RSD Hotkey " Grid.Row="8" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="8" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=RSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="WSD Hotkey " Grid.Row="10" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="10" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=WSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="Leave Session Hotkey" Grid.Row="12" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="12" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=LeaveSessionHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Grid.Row="14" Grid.Column="0" Content="Filter Delay (s)"></Label>
+                            <mah:NumericUpDown Grid.Row="14" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=SamplingDelay}"
+                                           Minimum="0" Maximum="10" Interval="1" ParsingNumberStyle="Float"/>
+                            <!--<Label Grid.Row="16" Grid.Column="0" Content="Sampling Period (s)"></Label>
+                            <mah:NumericUpDown Grid.Row="16" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=SamplingPeriod}" 
+                                           Minimum="2" Maximum="10" Interval="1" ParsingNumberStyle="Float"/>-->
+                        </Grid>
+                        <Grid Margin="20 0" Name="gridSessInfoSettings">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"></ColumnDefinition>
+                                <ColumnDefinition Width="auto"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" FontWeight="Bold">Show/Hide Session Info Columns:</Label>
+                            <ComboBox Grid.Row="1" Grid.Column="0" SelectedIndex="0" Name="cbColName" SelectionChanged="cbColName_SelectionChanged">
+                                <ComboBoxItem>Slot</ComboBoxItem>
+                                <ComboBoxItem>Char. Name</ComboBoxItem>
+                                <ComboBoxItem>Team</ComboBoxItem>
+                                <ComboBoxItem>Steam Name</ComboBoxItem>
+                                <ComboBoxItem>Overlay Name</ComboBoxItem>
+                                <ComboBoxItem>Steam ID 64</ComboBoxItem>
+                                <ComboBoxItem>Ping</ComboBoxItem>
+                                <ComboBoxItem>Average Ping</ComboBoxItem>
+                                <ComboBoxItem>Jitter</ComboBoxItem>
+                                <ComboBoxItem>Late Packet %</ComboBoxItem>
+                                <ComboBoxItem>Location</ComboBoxItem>
+                            </ComboBox>
+                            <mah:ToggleSwitch Margin="10 0" Grid.Row="1" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swColVisible" Toggled="swColVisible_Toggled"></mah:ToggleSwitch>
+                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Width="{Binding ElementName=gridSessInfoSettings, Path=ActualWidth}">
+                                <TextBlock TextWrapping="Wrap" Name="textColDesc" FontStyle="Italic">DESC</TextBlock>
+                            </Label>
+                            <DockPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" LastChildFill="False" Margin="0 5" HorizontalAlignment="Left">
+                                <Button DockPanel.Dock="Bottom" Name="btnResetSettings" Click="btnResetSettings_Click" Height="40" FontSize="14" Width="200">Reset All Settings</Button>
+                            </DockPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </mah:MetroTabItem>
+            <mah:MetroTabItem Header="Overlay" IsEnabled="True">
+                <StackPanel Orientation="Horizontal">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Label VerticalAlignment="Center" Content="Display Overlay" Grid.Row="0" Grid.Column="0"></Label>
+                        <mah:ToggleSwitch Grid.Row="0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=DisplayOverlay}" OnContent="Yes" OffContent="No" Name="swOverlay" Toggled="swOverlay_Toggled"></mah:ToggleSwitch>
+                        <Label VerticalAlignment="Center" Content="Overlay Hotkey" Grid.Row="2" Grid.Column="0"></Label>
+                        <mah:HotKeyBox Grid.Row="2" Grid.Column="1" Name="hotkeyOverlay"
+                                       HotKey="{Binding Source={x:Static local:Settings.Default}, Path=OverlayHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                        <Label VerticalAlignment="Center" Content="Borderless DS3" Grid.Row="4" Grid.Column="0"></Label>
+                        <mah:ToggleSwitch Grid.Row="4" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=BorderlessMode}" OnContent="Yes" OffContent="No" Name="swBorderless" Toggled="swBorderless_Toggled"></mah:ToggleSwitch>
+                        <Label VerticalAlignment="Center" Content="Borderless Hotkey" Grid.Row="6" Grid.Column="0"></Label>
+                        <mah:HotKeyBox Grid.Row="6" Grid.Column="1" Name="hotkeyBorderless"
+                                       HotKey="{Binding Source={x:Static local:Settings.Default}, Path=BorderlessHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                        <Label VerticalAlignment="Center" Content="Overlay Anchor" Grid.Row="8" Grid.Column="0"></Label>
+                        <ComboBox Grid.Row="8" Grid.Column="1" SelectedIndex="{Binding Source={x:Static local:Settings.Default}, Path=OverlayAnchor}">
+                            <ComboBoxItem>Top Right</ComboBoxItem>
+                            <ComboBoxItem>Top Left</ComboBoxItem>
+                            <ComboBoxItem>Bottom Right</ComboBoxItem>
+                            <ComboBoxItem>Bottom Left</ComboBoxItem>
+                        </ComboBox>
+                        <Label VerticalAlignment="Center" Content="Overlay X Offset" Grid.Row="10" Grid.Column="0"></Label>
+                        <mah:NumericUpDown Grid.Row="10" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=XOffset}" 
+                                           Minimum="0" Maximum="1" Interval="0.005" ParsingNumberStyle="Float" StringFormat="F3"/>
+                        <Label VerticalAlignment="Center" Content="Overlay Y Offset" Grid.Row="12" Grid.Column="0"></Label>
+                        <mah:NumericUpDown Grid.Row="12" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=YOffset}"  
+                                           Minimum="0" Maximum="1" Interval="0.005" ParsingNumberStyle="Float" StringFormat="F3"></mah:NumericUpDown>
+                        <Label VerticalAlignment="Center" Content="Overlay Font: " Grid.Row="14" Grid.Column="0"></Label>
+                        <Button Grid.Row="14" Grid.Column="1" Content="{Binding Source={x:Static local:Settings.Default}, Path=OverlayFont}" Name="btnFont" Click="btnFont_Click" ></Button>
+                        <Label VerticalAlignment="Center" Content="Name Format" Grid.Row="16" Grid.Column="0"></Label>
+                        <TextBox Grid.Row="16" Grid.Column="1" FontFamily="Consolas" Text="{Binding Source={x:Static local:Settings.Default}, Path=NameFormat}"></TextBox>
+                        <Label VerticalAlignment="Center" Content="N.F. (Connecting)" Grid.Row="18" Grid.Column="0"></Label>
+                        <TextBox Grid.Row="18" Grid.Column="1" FontFamily="Consolas" Text="{Binding Source={x:Static local:Settings.Default}, Path=NameFormatConnecting}"></TextBox>
+                        <Label VerticalAlignment="Center" Content="Stroke Thickness" Grid.Row="20" Grid.Column="0"></Label>
+                        <mah:NumericUpDown Grid.Row="20" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=OutlineThickness}"  
+                                           Minimum="0" Interval="0.5" ParsingNumberStyle="Float" StringFormat="F1"></mah:NumericUpDown>
+                    </Grid>
+                    <Grid Margin="20 10" Name="gridOverlaySettings2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="5"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Label VerticalAlignment="Center" Content="Text Color" Grid.Row="0" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="0" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=TextColor}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Stroke Color" Grid.Row="2" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="2" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=OutlineColor}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Connecting Color" Grid.Row="4" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="4" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=ConnectingColor}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Ping &lt;=50 Color" Grid.Row="6" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="6" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=PingColor1}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Ping &lt;=100 Color" Grid.Row="8" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="8" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=PingColor2}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Ping &lt;=200 Color" Grid.Row="10" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="10" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=PingColor3}"></mah:ColorPicker>
+                        <Label VerticalAlignment="Center" Content="Ping &gt;200 Color" Grid.Row="12" Grid.Column="0"></Label>
+                        <mah:ColorPicker Grid.Row="12" Grid.Column="1" SelectedColor="{Binding Source={x:Static local:Settings.Default}, Path=PingColor4}"></mah:ColorPicker>
+                        <Label Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold">Show/Hide Overlay Columns:</Label>
+                        <ComboBox Grid.Row="15" Grid.Column="0" SelectedIndex="0" Name="cbOColName" SelectionChanged="cbOColName_SelectionChanged">
+                            <ComboBoxItem>Slot</ComboBoxItem>
+                            <ComboBoxItem>Char. Name</ComboBoxItem>
+                            <ComboBoxItem>Team</ComboBoxItem>
+                            <ComboBoxItem>Steam Name</ComboBoxItem>
+                            <ComboBoxItem>Overlay Name</ComboBoxItem>
+                            <ComboBoxItem>Steam ID 64</ComboBoxItem>
+                            <ComboBoxItem>Ping</ComboBoxItem>
+                            <ComboBoxItem>Average Ping</ComboBoxItem>
+                            <ComboBoxItem>Jitter</ComboBoxItem>
+                            <ComboBoxItem>Late Packet %</ComboBoxItem>
+                            <ComboBoxItem>Location</ComboBoxItem>
+                        </ComboBox>
+                        <mah:ToggleSwitch Margin="10 0" Grid.Row="15" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swOColVisible" Toggled="swOColVisible_Toggled"></mah:ToggleSwitch>
+                        <Label Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2" Width="{Binding ElementName=gridOverlaySettings2, Path=ActualWidth}">
+                            <TextBlock TextWrapping="Wrap" Name="textOColDesc" FontStyle="Italic">DESC</TextBlock>
+                        </Label>
+                    </Grid>
+                </StackPanel>
+            </mah:MetroTabItem>
+        </mah:MetroTabControl>
+    </Grid>
+</mah:MetroWindow>

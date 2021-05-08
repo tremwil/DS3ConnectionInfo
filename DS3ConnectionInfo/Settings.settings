@@ -1,0 +1,138 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DS3ConnectionInfo" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="UsePingFilter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="MaxAvgPing" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">200</Value>
+    </Setting>
+    <Setting Name="REOHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="RSDHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="WSDHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="LeaveSessionHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="SamplingDelay" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="SamplingPeriod" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="DisplayOverlay" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="OverlayHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="BorderlessMode" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BorderlessHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="OverlayAnchor" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="XOffset" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.025</Value>
+    </Setting>
+    <Setting Name="YOffset" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0.05</Value>
+    </Setting>
+    <Setting Name="OverlayFont" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Segoe UI, 20.25pt</Value>
+    </Setting>
+    <Setting Name="NameFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{SteamName} ({CharName})</Value>
+    </Setting>
+    <Setting Name="NameFormatConnecting" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{SteamName}</Value>
+    </Setting>
+    <Setting Name="ShowRegion" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="TextColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FFFFFFFF</Value>
+    </Setting>
+    <Setting Name="OutlineColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FF000000</Value>
+    </Setting>
+    <Setting Name="OutlineThickness" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="ConnectingColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FFFFA500</Value>
+    </Setting>
+    <Setting Name="PingColor1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FF00BFFF</Value>
+    </Setting>
+    <Setting Name="PingColor2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FF7CFC00</Value>
+    </Setting>
+    <Setting Name="PingColor3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FFFFFF00</Value>
+    </Setting>
+    <Setting Name="PingColor4" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#FFCD5C5C</Value>
+    </Setting>
+    <Setting Name="PingFilterHotkey" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="SessColumnDescs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;The slot this player occupies in the game's SessionInfo structure.&lt;/string&gt;
+  &lt;string&gt;The player's in-game character name.&lt;/string&gt;
+  &lt;string&gt;The player's in-game team (e.g. Host, Dark Spirit, etc.)&lt;/string&gt;
+  &lt;string&gt;The player's Steam profile name.&lt;/string&gt;
+  &lt;string&gt;A combination of the player's Steam and in-game name, formatted according to overlay settings.&lt;/string&gt;
+  &lt;string&gt;The player's Steam ID 64 (number found in a Steam profile link).&lt;/string&gt;
+  &lt;string&gt;The player's ping (roundtrip time latency), calculated using the delay between sent and recieved STUN packets. Displayed in milliseconds.&lt;/string&gt;
+  &lt;string&gt;The player's average ping over the last 10 recieved STUN packets. Displayed in milliseconds.&lt;/string&gt;
+  &lt;string&gt;The standard deviation of the player's ping over the last 10 samples. A high value indicates an unstable connection. Displayed in milliseconds.&lt;/string&gt;
+  &lt;string&gt;The ratio of late vs. on time STUN reply packets from the player, as a percentage. Another indicator of connection quality.&lt;/string&gt;
+  &lt;string&gt;The state and country of the player, if available.&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="SessColumnVisibility" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="OverlayColVisibility" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Visible&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+  &lt;string&gt;Hidden&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

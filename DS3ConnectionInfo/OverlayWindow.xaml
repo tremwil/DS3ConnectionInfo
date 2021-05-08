@@ -3,14 +3,122 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DS3ConnectionInfo"
         mc:Ignorable="d"
-        Title="WowSharp Overlay OverlayWindow" Height="300" Width="300"
         WindowStyle="None"
         Topmost="True"
         ShowInTaskbar="False"
-        AllowsTransparency="True">
+        AllowsTransparency="True"
+        SizeToContent="WidthAndHeight"
+        Closed="Window_Closed"
+        ShowActivated="False"
+        Title="DS3ConnectionInfo Overlay Window" ContentRendered="Window_ContentRendered">
+    <Window.Resources>
+        <Style TargetType="{x:Type local:OverlayTextBlock}" x:Key="defaultStyle">
+            <Setter Property="Margin" Value="5 0"></Setter>
+            <Setter Property="Fill" Value="{Binding Source={x:Static local:Settings.Default}, Path=TextColor}"></Setter>
+            <Setter Property="Stroke" Value="{Binding Source={x:Static local:Settings.Default}, Path=OutlineColor}"></Setter>
+            <Setter Property="StrokeThickness" Value="{Binding Source={x:Static local:Settings.Default}, Path=OutlineThickness}"></Setter>
+            <Setter Property="Typeface" Value="{Binding Source={x:Static local:Settings.Default}, Path=OverlayFont}"></Setter>
+        </Style>
+    </Window.Resources>
     <Window.Background>
-        <SolidColorBrush Opacity="0.0" Color="Black" />
+        <SolidColorBrush Color="Transparent"></SolidColorBrush>
     </Window.Background>
-    <Canvas x:Name="OverlayGrid" HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="300" />
+    <StackPanel HorizontalAlignment="Left">
+        <local:OverlayTextBlock>
+            <local:OverlayTextBlock.Style>
+                <Style TargetType="{x:Type local:OverlayTextBlock}" BasedOn="{StaticResource defaultStyle}">
+                    <Setter Property="Text" Value="Ping Filter: Off"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" Value="True">
+                            <Setter Property="Text" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing, StringFormat=Ping Filter: {0}}"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </local:OverlayTextBlock.Style>
+        </local:OverlayTextBlock>
+        <DataGrid CanUserSortColumns="False" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" HeadersVisibility="None" 
+                  Background="Transparent" RowBackground="Transparent" ItemsSource="{Binding}" AutoGenerateColumns="False" Name="dataGrid">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Slot" SortDirection="Ascending">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding CharSlot}" Style="{StaticResource defaultStyle}" TextAlignment="center" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Char. Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding CharName}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Team Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding TeamName}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Steam Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding SteamName}" Fill="{Binding SteamNameColor}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Overlay Name">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding OverlayName}" Fill="{Binding SteamNameColor}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Steam ID 64">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding SteamId64}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Ping">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding Ping, StringFormat=N0}" Fill="{Binding PingColor}" TextAlignment="Right" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Avg. Ping">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding AveragePing, StringFormat=N0}" Fill="{Binding PingColor}" TextAlignment="Right" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Jitter">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding Jitter, StringFormat=N1}" TextAlignment="Center" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Late Packet %">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding LatePacketRatio, StringFormat=N1}" TextAlignment="Center" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Location">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:OverlayTextBlock Text="{Binding Region}" Style="{StaticResource defaultStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </StackPanel>
 </Window>

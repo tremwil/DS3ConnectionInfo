@@ -4,11 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Valve.Steamworks;
-using SteamworksSharp;
-using SteamworksSharp.Native;
 using System.Diagnostics;
 using System.Globalization;
+using System.Windows.Media;
+using Steamworks;
+using System.Text.RegularExpressions;
 
 namespace DS3ConnectionInfo
 {
@@ -43,53 +43,111 @@ namespace DS3ConnectionInfo
             {0, "None"}
         };
 
-        private static Dictionary<ulong, Player> activePlayers = new Dictionary<ulong, Player>();
+        private static Dictionary<CSteamID, Player> activePlayers = new Dictionary<CSteamID, Player>();
 
         private P2PSessionState_t sessionState;
-        public ulong SteamID { get; private set; }
+
+        public CSteamID SteamID { get; private set; }
         public string SteamName { get; private set; }
-
-        public IPAddress Ip { get; private set; }
+        public ulong NetId { get; private set; }
         public string Region { get; private set; }
-        public int Ping => (Ip == null) ? -1 : (int)ETWPingMonitor.GetPing(Ip);
-
         public string CharSlot { get; private set; }
+        public string CharName { get; private set; }
         public int TeamId { get; private set; }
-        public string TeamName => TeamNames.ContainsKey(TeamId) ? TeamNames[TeamId] : "";
-        public string CharName { get; set; }
 
-        private Player(ulong steamID, P2PSessionState_t session)
+        public string TeamName => TeamNames.ContainsKey(TeamId) ? TeamNames[TeamId] : "";
+        public ulong SteamId64 => SteamID.m_SteamID;
+        public double Ping => ETWPingMonitor.GetPing(NetId);
+        public double AveragePing => ETWPingMonitor.GetAveragePing(NetId);
+        public double Jitter => ETWPingMonitor.GetJitter(NetId);
+        public double LatePacketRatio => ETWPingMonitor.GetLatePacketRatio(NetId);
+
+        public SolidColorBrush SteamNameColor => new SolidColorBrush((Color)ColorConverter.ConvertFromString(
+            (CharSlot == "") ? Settings.Default.ConnectingColor : "#FFFFFFFF"));
+
+        public string OverlayName => GetOverlayName();
+        private string GetOverlayName()
+        {
+            Regex r = new Regex("\\{(?<key>\\w*)(?:,(?<len>\\d+))?\\}");
+            StringBuilder b = new StringBuilder();
+            Dictionary<string, string> map = new Dictionary<string, string>
+            {
+                { "SteamName", SteamName },
+                { "CharName", CharName }
+            };
+
+            string fmt = (CharSlot == "") ? Settings.Default.NameFormatConnecting : Settings.Default.NameFormat;
+            for (int i = 0; i < fmt.Length;)
+            {
+                Match m = r.Match(fmt, i);
+                if (!m.Success || !map.ContainsKey(m.Groups["key"].Value))
+                {
+                    b.Append(fmt.Substring(i));
+                    break;
+                }
+                b.Append(fmt.Substring(i, m.Index - i));
+                string val = map[m.Groups["key"].Value];
+                int maxLen = (m.Groups["len"].Length == 0) ? val.Length : int.Parse(m.Groups["len"].Value);
+                b.Append(val.Length > maxLen ? val.Substring(0, maxLen) + "..." : val);
+
+                i = m.Index + m.Length;
+            }
+            return b.ToString();
+        }
+
+        public string PingColor
+        {
+            get
+            {
+                switch (Ping)
+                {
+                    case -1:
+                        return Settings.Default.TextColor;
+                    case double n when (n <= 50):
+                        return Settings.Default.PingColor1;
+                    case double n when (n <= 100):
+                        return Settings.Default.PingColor2;
+                    case double n when (n <= 200):
+                        return Settings.Default.PingColor3;
+                    default:
+                        return Settings.Default.PingColor4;
+                }
+            }
+        }
+
+        private Player(CSteamID steamID)
         {
             SteamID = steamID;
-            SteamName = FixedPersonaName(steamID);
+            SteamName = SteamFriends.GetFriendPersonaName(steamID);
+
+            NetId = 0;
+            sessionState = new P2PSessionState_t();
 
             CharSlot = "";
             TeamId = -1;
             CharName = "";
-
-            UpdateNetInfo(session);
-        }
-
-        private static string FixedPersonaName(ulong steamID)
-        {
-            byte[] origBytes = Encoding.Default.GetBytes(SteamApi.SteamFriends.GetFriendPersonaName(steamID));
-            return Encoding.UTF8.GetString(origBytes);
         }
 
         private void UpdateNetInfo(P2PSessionState_t session)
         {
-            if (sessionState.m_nRemoteIP == session.m_nRemoteIP)
-                return;
-
+            bool endpointChanged = sessionState.m_nRemoteIP != session.m_nRemoteIP || sessionState.m_nRemotePort != session.m_nRemotePort;
             sessionState = session;
-            Ip = null;
-            Region = "...";
 
-            if (session.m_bUsingRelay == 0)
+            if (endpointChanged)
             {
+                // If IP/port changed for whatever reason
+                ETWPingMonitor.Unregister(NetId);
+
+                Region = "...";
+
                 byte[] ipBytes = BitConverter.GetBytes(sessionState.m_nRemoteIP).Reverse().ToArray();
-                Ip = new IPAddress(ipBytes);
-                IpLocationAPI.GetLocationAsync(Ip.ToString(), r => Region = r);
+                NetId = (ulong)sessionState.m_nRemotePort << 32 | BitConverter.ToUInt32(ipBytes, 0);
+                ETWPingMonitor.Register(NetId);
+
+                if (session.m_bUsingRelay == 0)
+                    IpLocationAPI.GetLocationAsync(new IPAddress(ipBytes).ToString(), r => Region = r);
+                else
+                    Region = "[STEAM RELAY]";
             }
         }
 
@@ -98,23 +156,20 @@ namespace DS3ConnectionInfo
             return activePlayers.Values.AsEnumerable();
         }
 
-        public static void UpdateInGameInfo(Process ds3Proc)
+        public static void UpdateInGameInfo()
         {
             for (int slot = 0; slot < 5; slot++)
             {
                 try
                 {
-                    DeepPointer<long> playerBase = new DeepPointer<long>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1) });
-                    if (playerBase.GetValue() == 0) continue;
+                    if (DS3Interop.GetPlayerBase(slot) == 0) continue;
 
-                    DeepPointerStr idPtr = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x7D8 });
-                    if (!ulong.TryParse(idPtr.GetValueUnicode(16), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong id))
-                        continue;
-
+                    CSteamID id = DS3Interop.GetPlayerSteamId(slot);
                     if (!activePlayers.ContainsKey(id)) continue;
+
                     activePlayers[id].CharSlot = slot.ToString();
-                    activePlayers[id].CharName = new DeepPointerStr(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x1FA0, 0x88 }).GetValueUnicode(16);
-                    activePlayers[id].TeamId = new DeepPointer<int>(ds3Proc, "DarkSoulsIII.exe", baseB, new int[] { 0x40, 0x38 * (slot + 1), 0x74 }).GetValue();
+                    activePlayers[id].CharName = DS3Interop.GetPlayerName(slot);
+                    activePlayers[id].TeamId = DS3Interop.GetPlayerTeam(slot);
                 }
                 catch (Exception)
                 {
@@ -128,20 +183,25 @@ namespace DS3ConnectionInfo
             // There's probably a better way to get all current active P2P connections,
             // but I couldn't find one. The SessionInfo pointers are not reliable as 
             // players can spoof their Steam ID there.
-            int cnt = SteamApi.SteamFriends.GetCoplayFriendCount();
+            int cnt = SteamFriends.GetCoplayFriendCount();
             for (int i = 0; i < cnt; i++)
             {
-                ulong id = SteamApi.SteamFriends.GetCoplayFriend(i);
+                CSteamID id = SteamFriends.GetCoplayFriend(i);
 
                 P2PSessionState_t session = new P2PSessionState_t();
-                if (!SteamApi.SteamNetworking.GetP2PSessionState(id, ref session) || session.m_bConnectionActive == 0)
-                    activePlayers.Remove(id);
-
-                else if (!activePlayers.ContainsKey(id))
-                    activePlayers[id] = new Player(id, session);
-
-                else
-                    activePlayers[id].UpdateNetInfo(session);
+                if (!SteamNetworking.GetP2PSessionState(id, out session) || (session.m_bConnectionActive == 0 && session.m_bConnecting == 0))
+                {
+                    if (activePlayers.ContainsKey(id))
+                    {
+                        ETWPingMonitor.Unregister(activePlayers[id].NetId);
+                        activePlayers.Remove(id);
+                    }
+                    continue;
+                }
+                if (!activePlayers.ContainsKey(id))
+                    activePlayers[id] = new Player(id);
+                
+                activePlayers[id].UpdateNetInfo(session);
             }
         }
     }

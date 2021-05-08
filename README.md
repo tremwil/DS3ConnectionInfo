@@ -1,21 +1,31 @@
 # DS3ConnectionInfo
-Simple console program showing active P2P connection information along ping and geolocation for Dark Souls III. In a game whose PvP is highly dependent on spacing and timing, knowing the latency between you and your opponent before the fight can be pretty useful. Also implements a simple in-game overlay (**windowed or borderless windowed mode only, check `settings.txt` for more information**).
+Simple C# application showing active P2P connection information along ping and geolocation for Dark Souls III. In a game whose PvP is highly dependent on spacing and timing, knowing the latency between you and your opponent before the fight can be pretty useful. Also implements an in game overlay (**windowed or borderless windowed mode only**) and a simple ping filter (it has many limitations, see FAQ for more information).
 
-## [Download](https://github.com/tremwil/DS3ConnectionInfo/releases/download/V3.3/DS3ConnectionInfo-V3.3.zip)
+## [Download](https://github.com/tremwil/DS3ConnectionInfo/releases/download/V4.0/DS3ConnectionInfo-V4.0.zip)
 
 ## DISCLAIMER: 
 **Do not share the location information provided by this program. While you should be free to view it yourself since the players are connected to your computer, respect the privacy of others. I am not responsible for any misuse of this information.**
 
 **I release the source code of the program for transparency and because C# is easy to decompile anyways. You are free to re-use parts of this code for other projects, but please give proper attribution.** 
 
-![](http://s01.geekpic.net/di-F9WL5Y.png)
+![](https://s01.geekpic.net/di-L8U0SH.png)
 
 # Installation
 Download the lastest release from the Releases tab and extract the ZIP file in any folder on your computer. Start `DS3ConnectionInfo.exe` whenever you want to use it. If you restart the game, you will also have to restart the program.
 
 # FAQ
 ### Is it bannable?
-It is 100% ban-safe, as the program does not modify the game's memory in any way. 
+It is 100% ban-safe, as the program does not modify the game's original code in any way. The program does allocate new memory in the Dark Souls III process to execute in-game functions (eg. query an invasion), however, but this does not cause bans. 
+
+### How does the ping filter work?
+The ping filter is very basic. When it is enabled and one invades or places a red/white sign using the program's hotkeys, the program will wait until an online session begins. After the connection with all players is established, the program will wait "Filter Delay" seconds and then compute the average ping of every player in the lobby. If this value is higher than the threshold, the online session will be abandonned and your invasion request / summon sign will reset. While this works fairly 
+well in practice, it has some disadvantages:
+- Since it is impossible to know the team of a player before the loading screen, the connection to a friendly player will affect matchmaking.
+- It is still possible to connect to unacceptably laggy players, if others in the session have a good ping. I am aware of this, and will add an absolute ping threshold in the future. I didn't add one because I thought it would reduce online acitivty too much.
+- The ping filter is useless for hosts. **This is by design**. I did not want to implement any kind of targeted kick functionality into the program, especially since it is open source.
+
+### Are the pings shown accurate if the other player is using a VPN?
+**Yes**, if V2+ is used. Since the pings are not calculated by pinging the remote IP but rather by listening for STUN reply packets coming from the remote game, using a VPN will not show an incorrect ping. The location information, however, does use the remote IP, and can be hidden using a VPN.
 
 ### Why does it require administrator privileges? (V2+)
 In V2+, the pings are computed by monitoring STUN packets that are sent to and recieved from the players' IPs. This is more accurate and updates faster than the 
