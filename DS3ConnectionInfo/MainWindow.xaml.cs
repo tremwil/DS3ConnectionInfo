@@ -100,6 +100,22 @@ namespace DS3ConnectionInfo
             foreach (Player p in Player.ActivePlayers())
                 playerData.Add(p);
 
+            // Update session info column sizes
+            foreach (var col in dataGridSession.Columns)
+            {
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.Pixel);
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
+            }
+            dataGridSession.UpdateLayout();
+
+            // Update overlay column sizes
+            foreach (var col in overlay.dataGrid.Columns)
+            {
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.Pixel);
+                col.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+            }
+            overlay.dataGrid.UpdateLayout();
+
             // Queue position update after the overlay has re-rendered
             Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(overlay.UpdatePosition));
 

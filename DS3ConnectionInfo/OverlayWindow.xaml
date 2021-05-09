@@ -39,7 +39,7 @@
             </local:OverlayTextBlock.Style>
         </local:OverlayTextBlock>
         <DataGrid CanUserSortColumns="False" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" HeadersVisibility="None" 
-                  Background="Transparent" RowBackground="Transparent" ItemsSource="{Binding}" AutoGenerateColumns="False" Name="dataGrid">
+                  Background="Transparent" RowBackground="Transparent" ItemsSource="{Binding}" AutoGenerateColumns="False" Name="dataGrid" ColumnWidth="SizeToCells">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Slot" SortDirection="Ascending">
                     <DataGridTemplateColumn.CellTemplate>
