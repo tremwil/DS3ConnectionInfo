@@ -1,5 +1,7 @@
 # DS3ConnectionInfo
 Simple C# application showing active P2P connection information along ping and geolocation for Dark Souls III. In a game whose PvP is highly dependent on spacing and timing, knowing the latency between you and your opponent before the fight can be pretty useful. Also implements an in game overlay (**windowed or borderless windowed mode only**) and a simple ping filter (it has many limitations, see FAQ for more information).
+### Known Bugs (will be fixed in V4.1):
+- Overlay does not shrink to fit contents after expanding
 
 ## [Download](https://github.com/tremwil/DS3ConnectionInfo/releases/download/V4/DS3ConnectionInfo-V4.0.zip)
 
