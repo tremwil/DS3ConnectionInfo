@@ -255,7 +255,6 @@ namespace DS3ConnectionInfo
         {
             updateTimer.Stop();
             SteamAPI.Shutdown();
-            File.Delete("steam_appid.txt");
             Close();
         }
 
