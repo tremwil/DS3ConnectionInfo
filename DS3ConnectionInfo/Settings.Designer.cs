@@ -430,5 +430,29 @@ namespace DS3ConnectionInfo {
                 this["OverlayColVisibility"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public double MaxAbsPing {
+            get {
+                return ((double)(this["MaxAbsPing"]));
+            }
+            set {
+                this["MaxAbsPing"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SpamRedEyeOrb {
+            get {
+                return ((bool)(this["SpamRedEyeOrb"]));
+            }
+            set {
+                this["SpamRedEyeOrb"] = value;
+            }
+        }
     }
 }

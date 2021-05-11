@@ -32,7 +32,14 @@
                     <Setter Property="Text" Value="Ping Filter: Off"></Setter>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" Value="True">
-                            <Setter Property="Text" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing, StringFormat=Ping Filter: {0}}"></Setter>
+                            <Setter Property="Text">
+                                <Setter.Value>
+                                    <MultiBinding StringFormat="Ping Filter: On, Avg. {0}, Abs. {1}">
+                                        <Binding Source="{x:Static local:Settings.Default}" Path="MaxAvgPing"></Binding>
+                                        <Binding Source="{x:Static local:Settings.Default}" Path="MaxAbsPing"></Binding>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

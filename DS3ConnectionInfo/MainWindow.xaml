@@ -23,7 +23,14 @@
                             <Setter Property="Foreground" Value="Orange"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" Value="True">
-                                    <Setter Property="Text" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing, StringFormat=PING FILTER: {0}}"></Setter>
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding StringFormat="PING FILTER: {0}/{1}">
+                                                <Binding Source="{x:Static local:Settings.Default}" Path="MaxAvgPing"></Binding>
+                                                <Binding Source="{x:Static local:Settings.Default}" Path="MaxAbsPing"></Binding>
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
                                     <Setter Property="Foreground" Value="LawnGreen"></Setter>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -89,8 +96,8 @@
                 <StackPanel Margin="10">
                     <Label FontWeight="Bold" Content="WARNING: This ping filter is very crude, and WILL increase the time it takes to find online activity."/>
                     <Label>
-                        <TextBlock>When the ping filter is on, the matchmaking hotkeys below will auto reset if the party's
-                        <LineBreak/>average ping is too high. For more info, read the FAQ on the
+                        <TextBlock>When the ping filter is on, invasions and red/white summon signs will cancel and auto reset
+                        <LineBreak/>if the average and/or per player ping is too high. For more info, read the FAQ on the
                         <Hyperlink NavigateUri="https://github.com/tremwil/DS3ConnectionInfo" RequestNavigate="webLink_RequestNavigate">
                             Github page</Hyperlink>.
                         </TextBlock>
@@ -120,6 +127,8 @@
                                 <RowDefinition Height="5"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
                             </Grid.RowDefinitions>
                             <Label Content="Ping Filter" Grid.Row="0" Grid.Column="0"></Label>
                             <mah:ToggleSwitch Grid.Row="0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" 
@@ -129,17 +138,20 @@
                             <Label Content="Max Average Ping" Grid.Row="4" Grid.Column="0"></Label>
                             <mah:NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAvgPing}" 
                                            Minimum="0" Interval="10" ParsingNumberStyle="Number"/>
-                            <Label Content="REO Hotkey" Grid.Row="6" Grid.Column="0"></Label>
-                            <mah:HotKeyBox Grid.Row="6" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=REOHotkey, Converter={StaticResource HotkeyConverter}}"/>
-                            <Label Content="RSD Hotkey " Grid.Row="8" Grid.Column="0"></Label>
-                            <mah:HotKeyBox Grid.Row="8" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=RSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
-                            <Label Content="WSD Hotkey " Grid.Row="10" Grid.Column="0"></Label>
-                            <mah:HotKeyBox Grid.Row="10" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=WSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
-                            <Label Content="Leave Session Hotkey" Grid.Row="12" Grid.Column="0"></Label>
-                            <mah:HotKeyBox Grid.Row="12" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=LeaveSessionHotkey, Converter={StaticResource HotkeyConverter}}"/>
-                            <Label Grid.Row="14" Grid.Column="0" Content="Filter Delay (s)"></Label>
-                            <mah:NumericUpDown Grid.Row="14" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=SamplingDelay}"
+                            <Label Content="Max Absolute Ping" Grid.Row="6" Grid.Column="0"></Label>
+                            <mah:NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=MaxAbsPing}" 
+                                           Minimum="0" Interval="10" ParsingNumberStyle="Number"/>
+                            <Label Grid.Row="8" Grid.Column="0" Content="Filter Delay (s)"></Label>
+                            <mah:NumericUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=SamplingDelay}"
                                            Minimum="0" Maximum="10" Interval="1" ParsingNumberStyle="Float"/>
+                            <Label Content="REO Hotkey" Grid.Row="10" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="10" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=REOHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="RSD Hotkey " Grid.Row="12" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="12" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=RSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="WSD Hotkey " Grid.Row="14" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="14" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=WSDHotkey, Converter={StaticResource HotkeyConverter}}"/>
+                            <Label Content="Leave Session Hotkey" Grid.Row="16" Grid.Column="0"></Label>
+                            <mah:HotKeyBox Grid.Row="16" Grid.Column="1" HotKey="{Binding Source={x:Static local:Settings.Default}, Path=LeaveSessionHotkey, Converter={StaticResource HotkeyConverter}}"/>
                             <!--<Label Grid.Row="16" Grid.Column="0" Content="Sampling Period (s)"></Label>
                             <mah:NumericUpDown Grid.Row="16" Grid.Column="1" Value="{Binding Source={x:Static local:Settings.Default}, Path=SamplingPeriod}" 
                                            Minimum="2" Maximum="10" Interval="1" ParsingNumberStyle="Float"/>-->
@@ -148,16 +160,21 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"></ColumnDefinition>
                                 <ColumnDefinition Width="auto"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="*"></RowDefinition>
                             </Grid.RowDefinitions>
-                            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" FontWeight="Bold">Show/Hide Session Info Columns:</Label>
-                            <ComboBox Grid.Row="1" Grid.Column="0" SelectedIndex="0" Name="cbColName" SelectionChanged="cbColName_SelectionChanged">
+
+                            <Label Content="REO Hotkey Effect" Grid.Row="0" Grid.Column="0"></Label>
+                            <mah:ToggleSwitch Grid.Row="0" Margin="10 0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=SpamRedEyeOrb}" 
+                                          OnContent="Spam" OffContent="Normal"></mah:ToggleSwitch>
+                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold">Show/Hide Session Info Columns:</Label>
+                            <ComboBox Grid.Row="3" Grid.Column="0" SelectedIndex="0" Name="cbColName" SelectionChanged="cbColName_SelectionChanged">
                                 <ComboBoxItem>Slot</ComboBoxItem>
                                 <ComboBoxItem>Char. Name</ComboBoxItem>
                                 <ComboBoxItem>Team</ComboBoxItem>
@@ -170,11 +187,11 @@
                                 <ComboBoxItem>Late Packet %</ComboBoxItem>
                                 <ComboBoxItem>Location</ComboBoxItem>
                             </ComboBox>
-                            <mah:ToggleSwitch Margin="10 0" Grid.Row="1" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swColVisible" Toggled="swColVisible_Toggled"></mah:ToggleSwitch>
-                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Width="{Binding ElementName=gridSessInfoSettings, Path=ActualWidth}">
+                            <mah:ToggleSwitch Margin="10 0" Grid.Row="3" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swColVisible" Toggled="swColVisible_Toggled"></mah:ToggleSwitch>
+                            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Width="{Binding ElementName=gridSessInfoSettings, Path=ActualWidth}">
                                 <TextBlock TextWrapping="Wrap" Name="textColDesc" FontStyle="Italic">DESC</TextBlock>
                             </Label>
-                            <DockPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" LastChildFill="False" Margin="0 5" HorizontalAlignment="Left">
+                            <DockPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" LastChildFill="False" Margin="0 5" HorizontalAlignment="Left">
                                 <Button DockPanel.Dock="Bottom" Name="btnResetSettings" Click="btnResetSettings_Click" Height="40" FontSize="14" Width="200">Reset All Settings</Button>
                             </DockPanel>
                         </Grid>

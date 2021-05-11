@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using DS3ConnectionInfo.WinAPI;
@@ -35,19 +36,95 @@ namespace DS3ConnectionInfo
         }
 
         /// <summary>
+        /// Ways of joining a DS3 online session.
+        /// </summary>
+        public enum JoinMethod
+        {
+            None,
+            Arena,
+            Convenant,
+            RedEyeOrb,
+            WhiteSign,
+            RedSign
+        }
+
+        private static readonly JoinMethod[] invTypeToJoinMethod = new JoinMethod[22]
+        {
+            JoinMethod.None,
+            JoinMethod.WhiteSign,
+            JoinMethod.RedSign,
+            JoinMethod.RedEyeOrb,
+            JoinMethod.WhiteSign,
+            JoinMethod.None, // 5 Missing from TGA list
+            JoinMethod.Convenant,
+            JoinMethod.Convenant,
+            JoinMethod.None, // (Guardian of Rosaria)
+            JoinMethod.Convenant,
+            JoinMethod.Convenant,
+            JoinMethod.None, // (Avatar)
+            JoinMethod.Arena,
+            JoinMethod.None, // (Umbasa White)
+            JoinMethod.WhiteSign,
+            JoinMethod.RedSign,
+            JoinMethod.RedSign,
+            JoinMethod.RedEyeOrb,
+            JoinMethod.RedEyeOrb,
+            JoinMethod.None, // (Force Join Session)
+            JoinMethod.None, // (Red Hunter)
+            JoinMethod.Convenant
+        };
+
+        public struct SpEffect
+        {
+            public int id;
+            public float durationLeft;
+            public float duration;
+            public float interval;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct SpEffectInternal
+        {
+            [FieldOffset(0x00)]
+            public float durationLeft;
+            [FieldOffset(0x04)]
+            public float duration;
+            [FieldOffset(0x08)]
+            public float interval;
+            [FieldOffset(0x60)]
+            public int id;
+            [FieldOffset(0x78)]
+            public long ptrNext;
+            public SpEffect ToSpEffect()
+            {
+                return new SpEffect { id = id, duration = duration, durationLeft = durationLeft, interval = interval };
+            }
+        }
+
+        /// <summary>
+        /// BaseA (Game) address
+        /// </summary>
+        public const long BaseA = 0x144740178;
+
+        /// <summary>
         /// BaseB (WorldChrMan) address
         /// </summary>
         public const long BaseB = 0x144768E78;
 
         /// <summary>
-        /// SprjSessionManager address
-        /// </summary>
-        public const long SprjSession = 0x144780990;
-
-        /// <summary>
         /// BaseC (GameOptionMan) address
         /// </summary>
         public const long BaseC = 0x144743AB0;
+
+        /// <summary>
+        /// FRPGNet address
+        /// </summary>
+        public const long BaseE = 0x14473FD08;
+
+        /// <summary>
+        /// SprjSessionManager address
+        /// </summary>
+        public const long SprjSession = 0x144780990;
 
         /// <summary>
         /// DS3.exe Base Address
@@ -127,8 +204,6 @@ namespace DS3ConnectionInfo
             if (pArr.Length == 0) return false;
 
             Process = pArr[0];
-            for (int i = 1; i < pArr.Length; i++) pArr[i].Dispose();
-
             ProcHandle = Kernel32.OpenProcess(ProcessAccessFlags.AllAccess, false, Process.Id);
             if (ProcHandle == IntPtr.Zero) Detach();
             return ProcHandle != IntPtr.Zero;
@@ -211,6 +286,34 @@ namespace DS3ConnectionInfo
         public static bool IsMyWorld()
         {
             return MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseC, 0xB1E) == 1;
+        }
+
+        public static IEnumerable<SpEffect> ActiveSpEffects()
+        {
+            long addrNext = MemoryManager.ReadGenericPtr<long>(ProcHandle, BaseA, 0x10, 0x920, 0x8);
+
+            while (addrNext != 0)
+            {
+                SpEffectInternal fx = MemoryManager.ReadGeneric<SpEffectInternal>(ProcHandle, addrNext);
+                addrNext = fx.ptrNext;
+                yield return fx.ToSpEffect();
+            }
+        }
+
+        public static bool IsSearchingInvasion()
+        {
+            foreach (SpEffect fx in ActiveSpEffects())
+            {
+                if (fx.id == 9200) return true;
+            }
+            return false;
+        }
+
+        public static JoinMethod GetJoinMethod()
+        {
+            int invType = MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseC, 0xC54);
+            if (invType > 0 || invType < -21) return JoinMethod.None;
+            else return invTypeToJoinMethod[-invType];
         }
     }
 }

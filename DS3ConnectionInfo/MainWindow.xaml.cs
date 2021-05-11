@@ -31,8 +31,10 @@ namespace DS3ConnectionInfo
         private ObservableCollection<Player> playerData;
         private OverlayWindow overlay;
 
-        private int activeFilterEffect = 0;
+        private bool reoSpamming = false;
         private int reoSpamCnt = 0;
+        private bool pingCheked = false;
+        private bool hadInvaded = false;
 
         public MainWindow()
         {
@@ -119,69 +121,81 @@ namespace DS3ConnectionInfo
             // Queue position update after the overlay has re-rendered
             Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(overlay.UpdatePosition));
 
+            DS3Interop.NetStatus status = DS3Interop.GetNetworkState();
+            if (reoSpamming && !Settings.Default.SpamRedEyeOrb)
+            {
+                reoSpamming = false;
+                reoSpamCnt = 0;
+            }
+            if (status == DS3Interop.NetStatus.None)
+            {
+                if (hadInvaded && !reoSpamming) DS3Interop.ApplyEffect(11);
+                if (reoSpamming)
+                {
+                    reoSpamCnt = (reoSpamCnt + 1) % 5;
+                    if (DS3Interop.IsSearchingInvasion() ^ (reoSpamCnt != 0)) DS3Interop.ApplyEffect(11);
+                }
+                hadInvaded = false;
+                pingCheked = false;
+            }
             if (Settings.Default.UsePingFilter)
             {
-                DS3Interop.NetStatus status = DS3Interop.GetNetworkState();
                 if (status == DS3Interop.NetStatus.Host || status == DS3Interop.NetStatus.TryCreateSession || DS3Interop.InLoadingScreen())
-                {   // Someone invaded, or the local player summoned a phantom
+                {   // Someone invaded, or the local player summoned a phantom, or ping filter was too late
                     pingFilterTimer.Stop();
-                    activeFilterEffect = 0;
+                    reoSpamming = false;
+                    reoSpamCnt = 0;
+                    pingCheked = false;
                 }
-
-                if (status == DS3Interop.NetStatus.None && activeFilterEffect == 11)
-                {   // Basically resetting REO
-                    if (reoSpamCnt >= 3)
-                    {
-                        DS3Interop.ApplyEffect(11);
-                    }
-                    reoSpamCnt = (reoSpamCnt + 1) % 5;
-                }
-
-                if (activeFilterEffect != 0 && status == DS3Interop.NetStatus.Client && !pingFilterTimer.IsEnabled)
+                if (status == DS3Interop.NetStatus.Client && !pingFilterTimer.IsEnabled && !pingCheked)
                 {   // Connection has been established
+                    pingCheked = true;
                     pingFilterTimer.Interval = TimeSpan.FromSeconds(Settings.Default.SamplingDelay);
                     pingFilterTimer.Start();
                 }
             }
-            else
-            {
-                activeFilterEffect = 0;
-                pingFilterTimer.Stop();
-            }
+            else pingFilterTimer.Stop();
         }
 
         private void PingFilterTimer_Tick(object sender, EventArgs e)
         {
             double sumPing = 0;  int n = 0;
+            bool absPingRespected = true;
             foreach (Player p in Player.ActivePlayers())
             {
                 if (p.Ping != -1)
                 {
+                    absPingRespected &= p.Ping < Settings.Default.MaxAbsPing;
                     sumPing += p.Ping;
                     n++;
                 }
             }
             if (n == 0)
-            {   // Wait until one player has a ping
+            {   // Wait until at least one player has a ping
                 pingFilterTimer.Interval = TimeSpan.FromSeconds(0.5);
                 return;
             }
-            if (sumPing / n > Settings.Default.MaxAvgPing)
+            if ((!absPingRespected || sumPing / n > Settings.Default.MaxAvgPing) && !DS3Interop.InLoadingScreen())
             {
+                var joinMethod = DS3Interop.GetJoinMethod();
                 DS3Interop.LeaveSession();
-                if (activeFilterEffect != 11) DS3Interop.ApplyEffect(activeFilterEffect);
-                else reoSpamCnt = 4;
+                if (joinMethod == DS3Interop.JoinMethod.RedEyeOrb)
+                    hadInvaded = true;
+                else if (joinMethod == DS3Interop.JoinMethod.RedSign)
+                    DS3Interop.ApplyEffect(10);
+                else if (joinMethod == DS3Interop.JoinMethod.WhiteSign)
+                    DS3Interop.ApplyEffect(4);
             }
-            else activeFilterEffect = 0;
+            else reoSpamming = false;
             pingFilterTimer.Stop();
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
+            Settings.Default.Save();
             overlay.Close();
             HotkeyManager.Disable();
             ETWPingMonitor.Stop();
-            Settings.Default.Save();
         }
 
         private void GameStartTimer_Tick(object sender, EventArgs e)
@@ -213,9 +227,9 @@ namespace DS3ConnectionInfo
                 HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.BorderlessHotkey, () => swBorderless.IsOn ^= true);
                 HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.OverlayHotkey, () => swOverlay.IsOn ^= true);
                 HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.PingFilterHotkey, () => Settings.Default.UsePingFilter ^= true);
-                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.REOHotkey, () => PingFilterAction(11));
-                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.RSDHotkey, () => PingFilterAction(10));
-                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.WSDHotkey, () => PingFilterAction(4));
+                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.REOHotkey, () => OnlineHotkey(11));
+                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.RSDHotkey, () => OnlineHotkey(10));
+                HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.WSDHotkey, () => OnlineHotkey(4));
                 HotkeyManager.AddHotkey(DS3Interop.WinHandle, () => Settings.Default.LeaveSessionHotkey, () => DS3Interop.LeaveSession());
 
                 ETWPingMonitor.Start();
@@ -224,14 +238,15 @@ namespace DS3ConnectionInfo
             }
         }
 
-        private void PingFilterAction(int effect)
+        private void OnlineHotkey(int effect)
         {
-            if (Settings.Default.UsePingFilter && !DS3Interop.InLoadingScreen())
+            if (DS3Interop.InLoadingScreen()) return;
+            if (effect == 11 && Settings.Default.SpamRedEyeOrb)
             {
-                pingFilterTimer.Stop();
-                activeFilterEffect = (effect == activeFilterEffect) ? 0 : effect;
-                if (activeFilterEffect != 11 || reoSpamCnt != 4) DS3Interop.ApplyEffect(effect);
+                reoSpamming ^= true;
                 reoSpamCnt = 0;
+                if (!reoSpamming && DS3Interop.IsSearchingInvasion())
+                    DS3Interop.ApplyEffect(11);
             }
             else DS3Interop.ApplyEffect(effect);
         }
