@@ -19,6 +19,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System.IO;
 using Steamworks;
+using System.Security.Permissions;
 
 namespace DS3ConnectionInfo
 {
@@ -30,6 +31,7 @@ namespace DS3ConnectionInfo
         private DispatcherTimer gameStartTimer, updateTimer, pingFilterTimer;
         private ObservableCollection<Player> playerData;
         private OverlayWindow overlay;
+        //private StreamWriter logWriter;
 
         private bool reoSpamming = false;
         private int reoSpamCnt = 0;
@@ -38,6 +40,9 @@ namespace DS3ConnectionInfo
 
         public MainWindow()
         {
+            //logWriter = new StreamWriter("log.txt");
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             InitializeComponent();
             overlay = new OverlayWindow();
             Closed += MainWindow_Closed;
@@ -82,6 +87,12 @@ namespace DS3ConnectionInfo
                     }
                 }
             });
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = (Exception)e.ExceptionObject;
+            MessageBox.Show($"[ERROR] {ex.GetType().Name}: {ex.Message} at {ex.StackTrace}");
         }
 
         private void UpdateColVisibility()
@@ -253,9 +264,12 @@ namespace DS3ConnectionInfo
 
         private void DarkSouls_HasExited(object sender, EventArgs e)
         {
-            updateTimer.Stop();
-            SteamAPI.Shutdown();
-            Close();
+            this.Invoke(() =>
+            {
+                updateTimer.Stop();
+                SteamAPI.Shutdown();
+                Close();
+            });
         }
 
         private void btnFont_Click(object sender, RoutedEventArgs e)
