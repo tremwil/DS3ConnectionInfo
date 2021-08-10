@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{85B98847-BA2D-4A75-9DEE-AFABC317CC5E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DS3ConnectionInfo", "DS3ConnectionInfo\DS3ConnectionInfo.csproj", "{A4512F87-F19E-4CD4-9FA1-EBB6C514BE77}"
 EndProject

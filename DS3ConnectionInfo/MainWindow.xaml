@@ -165,6 +165,8 @@
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="5"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
+                                <RowDefinition Height="5"></RowDefinition>
+                                <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="auto"></RowDefinition>
                                 <RowDefinition Height="*"></RowDefinition>
@@ -173,8 +175,12 @@
                             <Label Content="REO Hotkey Effect" Grid.Row="0" Grid.Column="0"></Label>
                             <mah:ToggleSwitch Grid.Row="0" Margin="10 0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=SpamRedEyeOrb}" 
                                           OnContent="Spam" OffContent="Normal"></mah:ToggleSwitch>
-                            <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold">Show/Hide Session Info Columns:</Label>
-                            <ComboBox Grid.Row="3" Grid.Column="0" SelectedIndex="0" Name="cbColName" SelectionChanged="cbColName_SelectionChanged">
+                            <Label Content="Enable Hotkeys" Grid.Row="2" Grid.Column="0"></Label>
+                            <mah:ToggleSwitch Grid.Row="2" Margin="10 0" Grid.Column="1" IsOn="{Binding Source={x:Static local:Settings.Default}, Path=UseHotkeys}" Name="swToggleHotkeys"
+                                          OnContent="Yes" OffContent="No" ToolTip="Enable/disable the hotkey system." Toggled="swToggleHotkeys_Toggled"></mah:ToggleSwitch>
+                            
+                            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" FontWeight="Bold">Show/Hide Session Info Columns:</Label>
+                            <ComboBox Grid.Row="5" Grid.Column="0" SelectedIndex="0" Name="cbColName" SelectionChanged="cbColName_SelectionChanged">
                                 <ComboBoxItem>Slot</ComboBoxItem>
                                 <ComboBoxItem>Char. Name</ComboBoxItem>
                                 <ComboBoxItem>Team</ComboBoxItem>
@@ -187,11 +193,11 @@
                                 <ComboBoxItem>Late Packet %</ComboBoxItem>
                                 <ComboBoxItem>Location</ComboBoxItem>
                             </ComboBox>
-                            <mah:ToggleSwitch Margin="10 0" Grid.Row="3" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swColVisible" Toggled="swColVisible_Toggled"></mah:ToggleSwitch>
-                            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Width="{Binding ElementName=gridSessInfoSettings, Path=ActualWidth}">
+                            <mah:ToggleSwitch Margin="10 0" Grid.Row="5" Grid.Column="1" IsOn="True" OnContent="Shown" OffContent="Hidden" Name="swColVisible" Toggled="swColVisible_Toggled"></mah:ToggleSwitch>
+                            <Label Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Width="{Binding ElementName=gridSessInfoSettings, Path=ActualWidth}">
                                 <TextBlock TextWrapping="Wrap" Name="textColDesc" FontStyle="Italic">DESC</TextBlock>
                             </Label>
-                            <DockPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" LastChildFill="False" Margin="0 5" HorizontalAlignment="Left">
+                            <DockPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" LastChildFill="False" Margin="0 5" HorizontalAlignment="Left">
                                 <Button DockPanel.Dock="Bottom" Name="btnResetSettings" Click="btnResetSettings_Click" Height="40" FontSize="14" Width="200">Reset All Settings</Button>
                             </DockPanel>
                         </Grid>

@@ -20,6 +20,7 @@ using MahApps.Metro.Controls.Dialogs;
 using System.IO;
 using Steamworks;
 using System.Security.Permissions;
+using System.Media;
 
 namespace DS3ConnectionInfo
 {
@@ -40,8 +41,9 @@ namespace DS3ConnectionInfo
 
         public MainWindow()
         {
-            //logWriter = new StreamWriter("log.txt");
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => ShowUnhandledException((Exception)e.ExceptionObject, "CurrentDomain", e.IsTerminating);
+            TaskScheduler.UnobservedTaskException += (s, e) => ShowUnhandledException(e.Exception, "TaskScheduler", false);
+            Dispatcher.UnhandledException += (s, e) => { if (!Debugger.IsAttached) ShowUnhandledException(e.Exception, "Dispatcher", true); };
 
             InitializeComponent();
             overlay = new OverlayWindow();
@@ -89,10 +91,21 @@ namespace DS3ConnectionInfo
             });
         }
 
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void ShowUnhandledException(Exception err, string type, bool fatal)
         {
-            Exception ex = (Exception)e.ExceptionObject;
-            MessageBox.Show($"[ERROR] {ex.GetType().Name}: {ex.Message} at {ex.StackTrace}");
+            MetroDialogSettings diagSettings = new MetroDialogSettings()
+            {
+                ColorScheme = MetroDialogColorScheme.Accented,
+                AffirmativeButtonText = "Copy",
+                NegativeButtonText = "Close"
+            };
+
+            SystemSounds.Exclamation.Play();
+            var result = this.ShowModalMessageExternal($"Unhandled Exception: {err.GetType().Name}", $"{err.Message}\n{err.StackTrace}", MessageDialogStyle.AffirmativeAndNegative, diagSettings);
+            if (result == MessageDialogResult.Affirmative)
+                Clipboard.SetText($"{err.GetType().Name}: {err.Message}\n{err.StackTrace}");
+
+            Close();
         }
 
         private void UpdateColVisibility()
@@ -225,11 +238,11 @@ namespace DS3ConnectionInfo
                     Close();
                 }
 
-                if (!HotkeyManager.Enable())
+                if (Settings.Default.UseHotkeys && !HotkeyManager.Enable())
                     MessageBox.Show("Could not initialize keyboard hook for hotkeys", "WINAPI Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 if (!overlay.InstallMsgHook())
-                    MessageBox.Show("Could not overlay message hook", "WINAPI Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Could not setup overlay message hook", "WINAPI Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 overlay.UpdateVisibility();
                 if (swBorderless.IsOn ^ DS3Interop.Borderless)
@@ -322,6 +335,14 @@ namespace DS3ConnectionInfo
         {
             if (DS3Interop.WinThread != 0 && swBorderless.IsOn ^ DS3Interop.Borderless)
                 DS3Interop.MakeBorderless(swBorderless.IsOn);
+        }
+
+        private void swToggleHotkeys_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (Settings.Default.UseHotkeys && !HotkeyManager.Enable())
+                MessageBox.Show("Could not initialize keyboard hook for hotkeys", "WINAPI Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            if (!Settings.Default.UseHotkeys) HotkeyManager.Disable();
         }
 
         private void btnResetSettings_Click(object sender, RoutedEventArgs e)
