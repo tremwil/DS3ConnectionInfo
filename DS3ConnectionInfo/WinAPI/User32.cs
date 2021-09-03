@@ -74,7 +74,10 @@ namespace DS3ConnectionInfo.WinAPI
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
         public static bool SetWindowZOrder(IntPtr hWnd, IntPtr hWndInsertAfter, uint uFlags = 0)
         {
-            return SetWindowPos(hWnd, hWndInsertAfter, 0, 0, 0, 0, 3 | uFlags);
+            return SetWindowPos(hWnd, hWndInsertAfter, 0, 0, 0, 0, 0x03 | uFlags);
         }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool IsIconic(IntPtr hWnd);
     }
 }

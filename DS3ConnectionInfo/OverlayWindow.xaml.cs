@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Input;
 
 namespace DS3ConnectionInfo
 {
@@ -13,6 +14,7 @@ namespace DS3ConnectionInfo
         private WindowInteropHelper interopHelper;
         private User32.WinEventDelegate locEvtHook, focusEvtHook;
         private IntPtr hLocHook, hFocusHook;
+        bool isDragging = false;
 
         public OverlayWindow()
         {
@@ -21,8 +23,8 @@ namespace DS3ConnectionInfo
             interopHelper = new WindowInteropHelper(this);
             int exStyle = User32.GetWindowLongPtr(interopHelper.Handle, -20).ToInt32();
             User32.SetWindowLongPtr(interopHelper.Handle, -20, new IntPtr(exStyle | 0x80 | 0x20));
-            User32.SetWindowZOrder(interopHelper.Handle, new IntPtr(-1), 0x010);
             UpdateColVisibility();
+            UpdateVisibility();
         }
 
         public void UpdateColVisibility()
@@ -35,13 +37,23 @@ namespace DS3ConnectionInfo
         }
         public void UpdateVisibility()
         {
-            bool shouldShow = DS3Interop.IsGameFocused() || IsActive;
+            bool shouldShow = !User32.IsIconic(DS3Interop.WinHandle);
             if (!IsVisible && Settings.Default.DisplayOverlay && shouldShow)
             {
                 Show();
                 UpdatePosition();
             }
             if (IsVisible && !(Settings.Default.DisplayOverlay && shouldShow)) Hide();
+
+            bool shouldTopmost = DS3Interop.IsGameFocused() || IsActive;
+            bool isTopmost = (User32.GetWindowLongPtr(interopHelper.Handle, -20).ToInt32() & 0x8) != 0;
+            
+            if (shouldTopmost && !isTopmost) User32.SetWindowZOrder(interopHelper.Handle, new IntPtr(-1), 0x010);
+            if (!shouldTopmost && isTopmost)
+            {
+                User32.SetWindowZOrder(interopHelper.Handle, DS3Interop.WinHandle, 0x010);
+                User32.SetWindowZOrder(DS3Interop.WinHandle, interopHelper.Handle, 0x010);
+            }
         }
 
         public bool InstallMsgHook()
@@ -65,7 +77,7 @@ namespace DS3ConnectionInfo
                 UpdateVisibility();
         }
 
-        public void UpdatePosition()
+        private Rect GetDS3WPFRect()
         {
             // Handle Windows DPI scaling (thanks anmer)
             var psc = PresentationSource.FromVisual(this);
@@ -77,10 +89,44 @@ namespace DS3ConnectionInfo
                 Rect wpfRect = new Rect(targetRect.x1 / dpi, targetRect.y1 / dpi,
                     (targetRect.x2 - targetRect.x1) / dpi, (targetRect.y2 - targetRect.y1) / dpi);
 
+                return wpfRect;
+            }
+
+            return Rect.Empty;
+        }
+
+        public void UpdatePosition()
+        {
+            if (!isDragging)
+            {
+                Rect wpfRect = GetDS3WPFRect();
+
                 Left = wpfRect.Left + ((Settings.Default.OverlayAnchor % 2 == 1) ? Settings.Default.XOffset * wpfRect.Width :
-                    (1 - Settings.Default.XOffset) * wpfRect.Width - ActualWidth);
+                        (1 - Settings.Default.XOffset) * wpfRect.Width - ActualWidth);
                 Top = wpfRect.Top + ((Settings.Default.OverlayAnchor < 2) ? Settings.Default.YOffset * wpfRect.Height :
                     (1 - Settings.Default.YOffset) * wpfRect.Height - ActualHeight);
+            }
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+            isDragging = true;
+        }
+
+        private void Window_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                Rect wpfRect = GetDS3WPFRect();
+
+                Settings.Default.XOffset = (Settings.Default.OverlayAnchor % 2 == 1) ? (Left - wpfRect.Left) / wpfRect.Width :
+                    1 - (Left - wpfRect.Left + ActualWidth) / wpfRect.Width;
+
+                Settings.Default.YOffset = (Settings.Default.OverlayAnchor < 2) ? (Top - wpfRect.Top) / wpfRect.Height :
+                    1 - (Top - wpfRect.Top + ActualHeight) / wpfRect.Height;
+
+                isDragging = false;
             }
         }
 
