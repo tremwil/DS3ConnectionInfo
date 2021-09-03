@@ -466,5 +466,29 @@ namespace DS3ConnectionInfo {
                 this["UseHotkeys"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[{time:HH:mm:ss}] Ping Filter: {avg}/{abs}")]
+        public string HeaderFmtFilterOn {
+            get {
+                return ((string)(this["HeaderFmtFilterOn"]));
+            }
+            set {
+                this["HeaderFmtFilterOn"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[{time:HH:mm:ss}]")]
+        public string HeaderFmtFilterOff {
+            get {
+                return ((string)(this["HeaderFmtFilterOff"]));
+            }
+            set {
+                this["HeaderFmtFilterOff"] = value;
+            }
+        }
     }
 }

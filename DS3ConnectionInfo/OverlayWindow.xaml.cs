@@ -3,6 +3,8 @@ using System;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Input;
+using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace DS3ConnectionInfo
 {
@@ -16,6 +18,8 @@ namespace DS3ConnectionInfo
         private IntPtr hLocHook, hFocusHook;
         bool isDragging = false;
 
+        private DispatcherTimer headerUpdateTimer;
+
         public OverlayWindow()
         {
             InitializeComponent();
@@ -25,6 +29,18 @@ namespace DS3ConnectionInfo
             User32.SetWindowLongPtr(interopHelper.Handle, -20, new IntPtr(exStyle | 0x80 | 0x20));
             UpdateColVisibility();
             UpdateVisibility();
+
+            headerUpdateTimer = new DispatcherTimer() { Interval = TimeSpan.FromSeconds(1) };
+            headerUpdateTimer.Tick += UpdateHeaderText;
+            headerUpdateTimer.Start();
+        }
+
+        public void UpdateHeaderText(object sender, EventArgs evt)
+        {
+            header.Text = FormatUtils.NamedFormat(Settings.Default.UsePingFilter ? Settings.Default.HeaderFmtFilterOn : Settings.Default.HeaderFmtFilterOff,
+                new string[3] { "time", "avg", "abs" }, DateTime.Now, Settings.Default.MaxAvgPing, Settings.Default.MaxAbsPing);
+
+            Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(UpdatePosition));
         }
 
         public void UpdateColVisibility()
@@ -110,8 +126,8 @@ namespace DS3ConnectionInfo
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            DragMove();
             isDragging = true;
+            DragMove();
         }
 
         private void Window_MouseUp(object sender, MouseButtonEventArgs e)

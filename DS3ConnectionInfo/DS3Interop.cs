@@ -253,6 +253,43 @@ namespace DS3ConnectionInfo
             return MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseB, 0x40, 0x38 * (slot + 1), 0x74);
         }
 
+        public static long GetPlayerNetHandle(int slot)
+        {
+            return MemoryManager.ReadGenericPtr<long>(ProcHandle, BaseB, 0x40, 0x38 * (slot + 1), 0x1FD0, 0x8);
+        }
+
+        /// <summary>
+        /// Bypasses SessionInfo Steam ID spoofing.
+        /// Adaptation of a Lua CE script by Amir.
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <returns></returns>
+        public static Steamworks.CSteamID GetTruePlayerSteamId(int slot)
+        {
+            long sprjSessionPtr = MemoryManager.ReadGenericPtr<long>(ProcHandle, SprjSession);
+            long playerNetHandle = GetPlayerNetHandle(slot);
+            if (sprjSessionPtr != 0 && playerNetHandle != 0)
+            {
+                long conn = MemoryManager.ReadGenericPtr<long>(ProcHandle, sprjSessionPtr + 0x18) + 0x68;
+                if (conn != 0)
+                {
+                    for (int i = 0; i <= 100; i++)
+                    {
+                        long ptr = MemoryManager.ReadGenericPtr<long>(ProcHandle, conn);
+                        long ptr2 = MemoryManager.ReadGenericPtr<long>(ProcHandle, conn + 8);
+                        if (0 == ptr || ptr + 8 * i >= ptr2) continue;
+
+                        long currHandle = MemoryManager.ReadGenericPtr<long>(ProcHandle, ptr + 8 * i, 13 * 8);
+                        ulong currSteamId = MemoryManager.ReadGenericPtr<ulong>(ProcHandle, ptr + 8 * i, 25 * 8);
+                        if (playerNetHandle == currHandle)
+                            return new Steamworks.CSteamID(currSteamId);
+                    }
+                }
+            }
+
+            return new Steamworks.CSteamID(0);
+        }
+
         public static void ApplyEffect(int effectId)
         {
             MemoryManager.ExecuteFunction(ProcHandle, applyEffect, new Dictionary<int, object>()

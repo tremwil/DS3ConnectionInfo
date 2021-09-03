@@ -68,31 +68,9 @@ namespace DS3ConnectionInfo
         public string OverlayName => GetOverlayName();
         private string GetOverlayName()
         {
-            Regex r = new Regex("\\{(?<key>\\w*)(?:,(?<len>\\d+))?\\}");
-            StringBuilder b = new StringBuilder();
-            Dictionary<string, string> map = new Dictionary<string, string>
-            {
-                { "SteamName", SteamName },
-                { "CharName", CharName }
-            };
-
+            string[] keyNames = new string[2] { "SteamName", "CharName" };
             string fmt = (CharSlot == "") ? Settings.Default.NameFormatConnecting : Settings.Default.NameFormat;
-            for (int i = 0; i < fmt.Length;)
-            {
-                Match m = r.Match(fmt, i);
-                if (!m.Success || !map.ContainsKey(m.Groups["key"].Value))
-                {
-                    b.Append(fmt.Substring(i));
-                    break;
-                }
-                b.Append(fmt.Substring(i, m.Index - i));
-                string val = map[m.Groups["key"].Value];
-                int maxLen = (m.Groups["len"].Length == 0) ? val.Length : int.Parse(m.Groups["len"].Value);
-                b.Append(val.Length > maxLen ? val.Substring(0, maxLen) + "..." : val);
-
-                i = m.Index + m.Length;
-            }
-            return b.ToString();
+            return FormatUtils.NamedFormat(fmt, keyNames, SteamName, CharName);
         }
 
         public string PingColor
@@ -164,7 +142,7 @@ namespace DS3ConnectionInfo
                 {
                     if (DS3Interop.GetPlayerBase(slot) == 0) continue;
 
-                    CSteamID id = DS3Interop.GetPlayerSteamId(slot);
+                    CSteamID id = DS3Interop.GetTruePlayerSteamId(slot);
                     if (!activePlayers.ContainsKey(id)) continue;
 
                     activePlayers[id].CharSlot = slot.ToString();

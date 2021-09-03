@@ -113,6 +113,7 @@
     </ApplicationDefinition>
     <Compile Include="DS3Interop.cs" />
     <Compile Include="ETWPingMonitor.cs" />
+    <Compile Include="FormatUtils.cs" />
     <Compile Include="GenericBitConverter.cs" />
     <Compile Include="HotkeyConverter.cs" />
     <Compile Include="HotkeyManager.cs" />

@@ -69,7 +69,6 @@ namespace DS3ConnectionInfo
             swColVisible.IsOn = Settings.Default.SessColumnVisibility[0] == "Visible";
             swOColVisible.IsOn = Settings.Default.OverlayColVisibility[0] == "Visible";
             textColDesc.Text = Settings.Default.SessColumnDescs[0];
-            textOColDesc.Text = Settings.Default.SessColumnDescs[0];
             UpdateColVisibility();
             overlay.UpdateColVisibility();
 
@@ -123,7 +122,7 @@ namespace DS3ConnectionInfo
             Player.UpdateInGameInfo();
             playerData.Clear();
 
-            foreach (Player p in Player.ActivePlayers())
+            foreach (Player p in Player.ActivePlayers().OrderBy(p => p.CharSlot))
                 playerData.Add(p);
 
             // Update session info column sizes
@@ -316,7 +315,6 @@ namespace DS3ConnectionInfo
         {
             if (!IsInitialized) return;
             swOColVisible.IsOn = Settings.Default.OverlayColVisibility[cbOColName.SelectedIndex] == "Visible";
-            textOColDesc.Text = Settings.Default.SessColumnDescs[cbOColName.SelectedIndex];
         }
 
         private void swOColVisible_Toggled(object sender, RoutedEventArgs e)
@@ -343,6 +341,11 @@ namespace DS3ConnectionInfo
                 MessageBox.Show("Could not initialize keyboard hook for hotkeys", "WINAPI Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
             if (!Settings.Default.UseHotkeys) HotkeyManager.Disable();
+        }
+
+        private void headerFmt_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings");
         }
 
         private void btnResetSettings_Click(object sender, RoutedEventArgs e)

@@ -14,7 +14,7 @@ namespace DS3ConnectionInfo
 {
     static class VersionCheck
     {
-        public static readonly string CurrentVersion = "V4.2";
+        public static readonly string CurrentVersion = "V4.3";
         public static JObject LatestRelease { get; private set; }
 
         public static bool FetchLatest()

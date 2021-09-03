@@ -143,5 +143,11 @@
     <Setting Name="UseHotkeys" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="HeaderFmtFilterOn" Type="System.String" Scope="User">
+      <Value Profile="(Default)">[{time:HH:mm:ss}] Ping Filter: {avg}/{abs}</Value>
+    </Setting>
+    <Setting Name="HeaderFmtFilterOff" Type="System.String" Scope="User">
+      <Value Profile="(Default)">[{time:HH:mm:ss}]</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

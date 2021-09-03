@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DS3ConnectionInfo"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         WindowStyle="None"
         Topmost="True"
@@ -26,25 +27,7 @@
         <SolidColorBrush Color="Transparent"></SolidColorBrush>
     </Window.Background>
     <StackPanel HorizontalAlignment="Left">
-        <local:OverlayTextBlock>
-            <local:OverlayTextBlock.Style>
-                <Style TargetType="{x:Type local:OverlayTextBlock}" BasedOn="{StaticResource defaultStyle}">
-                    <Setter Property="Text" Value="Ping Filter: Off"></Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Source={x:Static local:Settings.Default}, Path=UsePingFilter}" Value="True">
-                            <Setter Property="Text">
-                                <Setter.Value>
-                                    <MultiBinding StringFormat="Ping Filter: On, Avg. {0}, Abs. {1}">
-                                        <Binding Source="{x:Static local:Settings.Default}" Path="MaxAvgPing"></Binding>
-                                        <Binding Source="{x:Static local:Settings.Default}" Path="MaxAbsPing"></Binding>
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </local:OverlayTextBlock.Style>
-        </local:OverlayTextBlock>
+        <local:OverlayTextBlock x:Name="header" Style="{StaticResource defaultStyle}"></local:OverlayTextBlock>
         <DataGrid CanUserSortColumns="False" IsReadOnly="True" CanUserReorderColumns="False" CanUserResizeColumns="False" HeadersVisibility="None" 
                   Background="Transparent" RowBackground="Transparent" ItemsSource="{Binding}" AutoGenerateColumns="False" Name="dataGrid" ColumnWidth="SizeToCells">
             <DataGrid.Columns>
