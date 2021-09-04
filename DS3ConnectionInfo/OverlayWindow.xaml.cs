@@ -53,6 +53,12 @@ namespace DS3ConnectionInfo
         }
         public void UpdateVisibility()
         {
+            if (!DS3Interop.Attached)
+            {
+                Hide();
+                return;
+            }
+
             bool shouldShow = !User32.IsIconic(DS3Interop.WinHandle);
             if (!IsVisible && Settings.Default.DisplayOverlay && shouldShow)
             {
@@ -66,9 +72,13 @@ namespace DS3ConnectionInfo
             
             if (shouldTopmost && !isTopmost) User32.SetWindowZOrder(interopHelper.Handle, new IntPtr(-1), 0x010);
             if (!shouldTopmost && isTopmost)
-            {
+            {   // Place the overlay right above the DS3 window
                 User32.SetWindowZOrder(interopHelper.Handle, DS3Interop.WinHandle, 0x010);
                 User32.SetWindowZOrder(DS3Interop.WinHandle, interopHelper.Handle, 0x010);
+                // For some reason setting the Z order from topmost to non-topmost clears the WS_EX_TOOLWINDOW flag
+                // which allows the window to be invisible in ALT+TAB, so we have to re-apply it here.
+                int exStyle = User32.GetWindowLongPtr(interopHelper.Handle, -20).ToInt32();
+                User32.SetWindowLongPtr(interopHelper.Handle, -20, new IntPtr(exStyle | 0x80 | 0x20));
             }
         }
 
