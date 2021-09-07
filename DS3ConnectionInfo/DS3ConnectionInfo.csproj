@@ -111,6 +111,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Team.cs" />
     <Compile Include="DS3Interop.cs" />
     <Compile Include="ETWPingMonitor.cs" />
     <Compile Include="FormatUtils.cs" />

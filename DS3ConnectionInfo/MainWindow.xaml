@@ -54,8 +54,14 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Slot" IsReadOnly="True" Binding="{Binding CharSlot}" SortDirection="Ascending" ElementStyle="{StaticResource textCenter}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Char. Name" IsReadOnly="True" Binding="{Binding CharName}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Team" IsReadOnly="True" Binding="{Binding TeamName}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Steam Name" IsReadOnly="True" Binding="{Binding SteamName}">
+						<DataGridTextColumn Header="Team" IsReadOnly="True" Binding="{Binding TeamName}">
+							<DataGridTextColumn.ElementStyle>
+								<Style TargetType="{x:Type TextBlock}">
+									<Setter Property="Foreground" Value="{Binding TeamColor}"></Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+						<DataGridTextColumn Header="Steam Name" IsReadOnly="True" Binding="{Binding SteamName}">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Foreground" Value="{Binding SteamNameColor}"></Setter>
