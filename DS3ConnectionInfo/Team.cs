@@ -9,8 +9,8 @@ namespace DS3ConnectionInfo
     /// <summary>
     /// "Loyalty" refers to who that individual is not allowed to hurt, "Mission" refers to who the individual is incentivized to hurt
     /// </summary>
-	public enum TeamAllegiance
-	{
+    public enum TeamAllegiance
+    {
         Host,       /// Loyal to host, mission to keep host alive until and through critical battle
         Protector,  /// Loyal to host, mission to keep host alive until invaders are dispatched
         Mad,        /// Loyal to none, mission to kill the host or any phantom
@@ -18,14 +18,14 @@ namespace DS3ConnectionInfo
         Defender,   /// Loyal to each other, mission to kill host
         Enemy,      /// Loyal to each other, mission to kill host and those loyal, or any invader if Seed of a Giant used
         Unknown     /// Loyalty and mission unidentified, complicated, or depends on host actions
-	}
-
+    }
+    
     public class Team
     {
         public string Name { get; private set; }
         public TeamAllegiance Allegiance { get; private set; }
         public string Color => colors[Allegiance];
-
+        
         private static readonly Dictionary<int, Team> teams = new Dictionary<int, Team>()
         {
             {1,  new Team("Host",                                       TeamAllegiance.Host) },
@@ -52,7 +52,7 @@ namespace DS3ConnectionInfo
             {33, new Team("Giant crabs, Dragons from Lothric castle",   TeamAllegiance.Enemy) },
             {0,  new Team("None",                                       TeamAllegiance.Unknown) }
         };
-
+        
         private static readonly Dictionary<TeamAllegiance, string> colors = new Dictionary<TeamAllegiance, string>()
         {
             { TeamAllegiance.Host,      "#FFFFFFFF" },
@@ -63,16 +63,16 @@ namespace DS3ConnectionInfo
             { TeamAllegiance.Enemy,     "#FF006400" },
             { TeamAllegiance.Unknown,   "#FFFFA500" },
         };
-
+        
         private Team(string name, TeamAllegiance allegiance)
         {
             Name = name;
             Allegiance = allegiance;
-		}
-
+        }
+        
         public static Team GetTeamFromId(int id)
         {
             return teams.ContainsKey(id) ? teams[id] : teams[0];
-		}
-	}
+        }
+    }
 }
