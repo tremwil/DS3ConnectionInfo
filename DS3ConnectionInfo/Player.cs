@@ -48,7 +48,7 @@ namespace DS3ConnectionInfo
             string fmt = (CharSlot == "") ? Settings.Default.NameFormatConnecting : Settings.Default.NameFormat;
             return FormatUtils.NamedFormat(fmt, keyNames, SteamName, CharName);
         }
-        
+
         public string PingColor
         {
             get
@@ -68,7 +68,7 @@ namespace DS3ConnectionInfo
                 }
             }
         }
-        
+
         private Player(CSteamID steamID)
         {
             SteamID = steamID;
