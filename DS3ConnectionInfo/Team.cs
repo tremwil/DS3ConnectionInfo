@@ -11,7 +11,7 @@ namespace DS3ConnectionInfo
     /// </summary>
 	public enum TeamAllegiance
 	{
-		Host,       /// Loyal to host, mission to keep host alive until and through critical battle
+        Host,       /// Loyal to host, mission to keep host alive until and through critical battle
         Protector,  /// Loyal to host, mission to keep host alive until invaders are dispatched
         Mad,        /// Loyal to none, mission to kill the host or any phantom
         Invader,    /// Loyal to none, mission to kill the host
