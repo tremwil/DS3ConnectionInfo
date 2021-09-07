@@ -16,32 +16,6 @@ namespace DS3ConnectionInfo
     {
         private const long baseB = 0x4768E78;
 
-        public static readonly Dictionary<int, string> TeamNames = new Dictionary<int, string>()
-        {
-            {1, "Host"},
-            {2, "Phantom"},
-            {3, "Black Phantom"},
-            {4, "Hollow"},
-            {6, "Enemy"},
-            {7, "Boss (giants, big lizard)"},
-            {8, "Friend"},
-            {9, "AngryFriend"},
-            {10, "DecoyEnemy"},
-            {11, "BloodChild"},
-            {12, "BattleFriend"},
-            {13, "Dragon"},
-            {16, "Dark Spirit"},
-            {17, "Watchdog of Farron"},
-            {18, "Aldrich Faithful"},
-            {24, "Darkwraiths"},
-            {26, "NPC"},
-            {27, "Hostile NPC"},
-            {29, "Arena"},
-            {31, "Mad Phantom"},
-            {32, "Mad Spirit"},
-            {33, "Giant crabs, Dragons from Lothric castle"},
-            {0, "None"}
-        };
 
         private static Dictionary<CSteamID, Player> activePlayers = new Dictionary<CSteamID, Player>();
 
@@ -55,7 +29,8 @@ namespace DS3ConnectionInfo
         public string CharName { get; private set; }
         public int TeamId { get; private set; }
 
-        public string TeamName => TeamNames.ContainsKey(TeamId) ? TeamNames[TeamId] : "";
+        public string TeamName => Team.GetTeamFromId(TeamId).Name;
+        public TeamAllegiance TeamAlliegance => Team.GetTeamFromId(TeamId).Allegiance;
         public ulong SteamId64 => SteamID.m_SteamID;
         public double Ping => ETWPingMonitor.GetPing(NetId);
         public double AveragePing => ETWPingMonitor.GetAveragePing(NetId);
@@ -64,6 +39,7 @@ namespace DS3ConnectionInfo
 
         public SolidColorBrush SteamNameColor => new SolidColorBrush((Color)ColorConverter.ConvertFromString(
             (CharSlot == "") ? Settings.Default.ConnectingColor : "#FFFFFFFF"));
+        public SolidColorBrush TeamColor => new SolidColorBrush((Color)ColorConverter.ConvertFromString(Team.GetTeamFromId(TeamId).Color));
 
         public string OverlayName => GetOverlayName();
         private string GetOverlayName()
@@ -72,7 +48,7 @@ namespace DS3ConnectionInfo
             string fmt = (CharSlot == "") ? Settings.Default.NameFormatConnecting : Settings.Default.NameFormat;
             return FormatUtils.NamedFormat(fmt, keyNames, SteamName, CharName);
         }
-
+        
         public string PingColor
         {
             get
@@ -92,7 +68,7 @@ namespace DS3ConnectionInfo
                 }
             }
         }
-
+        
         private Player(CSteamID steamID)
         {
             SteamID = steamID;

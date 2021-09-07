@@ -48,7 +48,7 @@
                 <DataGridTemplateColumn Header="Team Name">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <local:OverlayTextBlock Text="{Binding TeamName}" Style="{StaticResource defaultStyle}" />
+							<local:OverlayTextBlock Text="{Binding TeamName}" Fill="{Binding TeamColor}" Style="{StaticResource defaultStyle}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

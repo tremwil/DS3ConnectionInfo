@@ -122,7 +122,7 @@ namespace DS3ConnectionInfo
             Player.UpdateInGameInfo();
             playerData.Clear();
 
-            foreach (Player p in Player.ActivePlayers().OrderBy(p => p.CharSlot))
+            foreach (Player p in Player.ActivePlayers().OrderBy(p => p.TeamAlliegance))
                 playerData.Add(p);
 
             // Update session info column sizes
