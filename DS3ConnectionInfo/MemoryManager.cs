@@ -15,6 +15,16 @@ namespace DS3ConnectionInfo
     /// </summary>
     public static class MemoryManager
     {
+        public static long GetModuleBase(this Process proc, string moduleName)
+        {
+            for (int i = 0; i < proc.Modules.Count; i++)
+            {
+                if (proc.Modules[i].ModuleName == moduleName)
+                    return (long)proc.Modules[i].BaseAddress;
+            }
+            return 0;
+        }
+
         /// <summary>
         /// Extension method which converts a string of hex characters into a byte array.
         /// </summary>
@@ -157,6 +167,27 @@ namespace DS3ConnectionInfo
         }
 
         /// <summary>
+        /// A direct address to the value. Do not store this address to reliably
+        /// get data since it can change at any time.
+        /// </summary>
+        /// <returns>The current address to the data, otherwise 0</returns>
+        public static long GetDynamicAddress(IntPtr pHandle, string module, long address, int[] offsets)
+        {
+            try
+            {
+                // Iteratively update the current address by moving up the pointers chain
+                foreach (long offset in offsets)
+                    address = ReadInt64(pHandle, address) + offset;
+
+                return address;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return 0; // Pointer is probably changing addresses
+            }
+        }
+
+        /// <summary>
         /// Read a generic value from a pointer.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -218,10 +249,16 @@ namespace DS3ConnectionInfo
         /// <param name="asm"></param>
         /// <param name="arguments"></param>
         /// <param name="syncWait">Sync timeout in milliseconds (0ms = async).</param>
-        public static void ExecuteFunction(IntPtr pHandle, byte[] asm, Dictionary<int, object> arguments = null, int timeout = 3000)
+        public static void ExecuteFunction(IntPtr pHandle, byte[] asm, Dictionary<int, object> replacements = null, Dictionary<int, object> arguments = null, int timeout = 3000)
         {
             if (arguments == null)
                 arguments = new Dictionary<int, object>();
+
+            foreach (int idx in replacements.Keys)
+            {
+                byte[] replacement = GenericBitConverter.ToBytes(replacements[idx]);
+                Array.Copy(replacement, 0, asm, idx, replacement.Length);
+            }
 
             Dictionary<int, byte[]> argData = new Dictionary<int, byte[]>();
             foreach (int idx in arguments.Keys)

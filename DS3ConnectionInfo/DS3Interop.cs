@@ -104,32 +104,27 @@ namespace DS3ConnectionInfo
         /// <summary>
         /// BaseA (Game) address
         /// </summary>
-        public const long BaseA = 0x144740178;
+        public const long GameDataMan = 0x47572B8;
 
         /// <summary>
         /// BaseB (WorldChrMan) address
         /// </summary>
-        public const long BaseB = 0x144768E78;
+        public const long WorldChrMan = 0x477FDB8;
 
         /// <summary>
         /// BaseC (GameOptionMan) address
         /// </summary>
-        public const long BaseC = 0x144743AB0;
+        public const long GameMan = 0x475AC00;
 
         /// <summary>
         /// FRPGNet address
         /// </summary>
-        public const long BaseE = 0x14473FD08;
+        public const long FrpgNetMan = 0x4756E48;
 
         /// <summary>
         /// SprjSessionManager address
         /// </summary>
-        public const long SprjSession = 0x144780990;
-
-        /// <summary>
-        /// DS3.exe Base Address
-        /// </summary>
-        public const long MainModuleBase = 0x140000000;
+        public const long SprjSessionManager = 0x4796270;
 
         /// <summary>
         /// Apply Effect script x86_64
@@ -233,29 +228,29 @@ namespace DS3ConnectionInfo
 
         public static long GetPlayerBase(int slot)
         {
-            return MemoryManager.ReadGenericPtr<long>(ProcHandle, BaseB, 0x40, 0x38 * (slot + 1));
+            return MemoryManager.ReadGenericPtr<long>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x40, 0x38 * slot);
         }
 
         public static Steamworks.CSteamID GetPlayerSteamId(int slot)
         {
-            string sid = MemoryManager.ReadStringPtr(ProcHandle, 32, Encoding.Unicode, BaseB, 0x40, 0x38 * (slot + 1), 0x1FA0, 0x7D8);
+            string sid = MemoryManager.ReadStringPtr(ProcHandle, 32, Encoding.Unicode, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x40, 0x38 * slot, 0x1FA0, 0x7D8);
             if (ulong.TryParse(sid, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong id)) return new Steamworks.CSteamID(id);
             return new Steamworks.CSteamID(0);
         }
 
         public static string GetPlayerName(int slot)
         {
-            return MemoryManager.ReadStringPtrNT(ProcHandle, 32, Encoding.Unicode, BaseB, 0x40, 0x38 * (slot + 1), 0x1FA0, 0x88);
+            return MemoryManager.ReadStringPtrNT(ProcHandle, 32, Encoding.Unicode, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x40, 0x38 * slot, 0x1FA0, 0x88);
         }
 
         public static int GetPlayerTeam(int slot)
         {
-            return MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseB, 0x40, 0x38 * (slot + 1), 0x74);
+            return MemoryManager.ReadGenericPtr<int>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x40, 0x38 * slot, 0x74);
         }
 
         public static long GetPlayerNetHandle(int slot)
         {
-            return MemoryManager.ReadGenericPtr<long>(ProcHandle, BaseB, 0x40, 0x38 * (slot + 1), 0x1FD0, 0x8);
+            return MemoryManager.ReadGenericPtr<long>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x40, 0x38 * slot, 0x1FD0, 0x8);
         }
 
         /// <summary>
@@ -266,7 +261,7 @@ namespace DS3ConnectionInfo
         /// <returns></returns>
         public static Steamworks.CSteamID GetTruePlayerSteamId(int slot)
         {
-            long sprjSessionPtr = MemoryManager.ReadGenericPtr<long>(ProcHandle, SprjSession);
+            long sprjSessionPtr = MemoryManager.ReadGenericPtr<long>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + SprjSessionManager);
             long playerNetHandle = GetPlayerNetHandle(slot);
             if (sprjSessionPtr != 0 && playerNetHandle != 0)
             {
@@ -294,25 +289,33 @@ namespace DS3ConnectionInfo
         {
             MemoryManager.ExecuteFunction(ProcHandle, applyEffect, new Dictionary<int, object>()
             {
+                { 0xf, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan },
+                { 0x2a, Process.MainModule.BaseAddress.ToInt64() + 0x88f360 }
+            }, new Dictionary<int, object>()
+            {
                 { 0x2, effectId }
             });
         }
 
         public static void LeaveSession()
         {
-            MemoryManager.ExecuteFunction(ProcHandle, leaveSession);
+            MemoryManager.ExecuteFunction(ProcHandle, leaveSession, new Dictionary<int, object>()
+            {
+                { 2, Process.MainModule.BaseAddress.ToInt64() + SprjSessionManager },
+                { 0x13, Process.MainModule.BaseAddress.ToInt64() + 0xdf78d0 }
+            });
         }
 
         public static NetStatus GetNetworkState()
         {
-            return MemoryManager.ReadGenericPtr<NetStatus>(ProcHandle, SprjSession, 0x16C);
+            return MemoryManager.ReadGenericPtr<NetStatus>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + SprjSessionManager, 0x16C);
         }
 
         public static bool InLoadingScreen()
         {
             try
             {   // Current animation undefined
-                return MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseB, 0x80, 0x1F90, 0x80, 0xC8) == -1;
+                return MemoryManager.ReadGenericPtr<int>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan, 0x80, 0x1F90, 0x80, 0xC8) == -1;
             }
             catch (Exception)
             {
@@ -322,12 +325,12 @@ namespace DS3ConnectionInfo
 
         public static bool IsMyWorld()
         {
-            return MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseC, 0xB1E) == 1;
+            return MemoryManager.ReadGenericPtr<int>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + GameMan, 0xB1E) == 1;
         }
 
         public static IEnumerable<SpEffect> ActiveSpEffects()
         {
-            long addrNext = MemoryManager.ReadGenericPtr<long>(ProcHandle, BaseA, 0x10, 0x920, 0x8);
+            long addrNext = MemoryManager.ReadGenericPtr<long>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + GameDataMan, 0x10, 0x920, 0x8);
 
             while (addrNext != 0)
             {
@@ -348,7 +351,7 @@ namespace DS3ConnectionInfo
 
         public static JoinMethod GetJoinMethod()
         {
-            int invType = MemoryManager.ReadGenericPtr<int>(ProcHandle, BaseC, 0xC54);
+            int invType = MemoryManager.ReadGenericPtr<int>(ProcHandle, Process.MainModule.BaseAddress.ToInt64() + GameMan, 0xC54);
             if (invType > 0 || invType < -21) return JoinMethod.None;
             else return invTypeToJoinMethod[-invType];
         }

@@ -129,6 +129,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SteamWebAPI.cs" />
     <Compile Include="VersionCheck.cs" />
     <Compile Include="WinAPI\CWPRETSTRUCT.cs" />
     <Compile Include="WinAPI\KBDLLHOOKSTRUCT.cs" />
@@ -195,6 +196,7 @@
     <Content Include="Steamworks.NET.dll" />
     <Content Include="steam_api64.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

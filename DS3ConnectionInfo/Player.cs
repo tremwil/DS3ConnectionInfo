@@ -136,7 +136,7 @@ namespace DS3ConnectionInfo
 
         public static void UpdateInGameInfo()
         {
-            for (int slot = 0; slot < 5; slot++)
+            for (int slot = 1; slot < 6; slot++)
             {
                 try
                 {
@@ -161,6 +161,7 @@ namespace DS3ConnectionInfo
             // There's probably a better way to get all current active P2P connections,
             // but I couldn't find one. The SessionInfo pointers are not reliable as 
             // players can spoof their Steam ID there.
+            // TODO: REPLACE THIS BY ITERATING OVER NET HANDLES
             int cnt = SteamFriends.GetCoplayFriendCount();
             for (int i = 0; i < cnt; i++)
             {

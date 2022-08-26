@@ -490,5 +490,29 @@ namespace DS3ConnectionInfo {
                 this["HeaderFmtFilterOff"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SteamWebApiKey {
+            get {
+                return ((string)(this["SteamWebApiKey"]));
+            }
+            set {
+                this["SteamWebApiKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CheckSteamMains {
+            get {
+                return ((bool)(this["CheckSteamMains"]));
+            }
+            set {
+                this["CheckSteamMains"] = value;
+            }
+        }
     }
 }

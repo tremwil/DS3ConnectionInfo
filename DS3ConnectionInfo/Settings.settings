@@ -149,5 +149,11 @@
     <Setting Name="HeaderFmtFilterOff" Type="System.String" Scope="User">
       <Value Profile="(Default)">[{time:HH:mm:ss}]</Value>
     </Setting>
+    <Setting Name="SteamWebApiKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CheckSteamMains" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
