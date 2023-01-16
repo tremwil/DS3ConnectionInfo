@@ -109,7 +109,7 @@ namespace DS3ConnectionInfo
         /// <summary>
         /// BaseB (WorldChrMan) address
         /// </summary>
-        public const long WorldChrMan = 0x477FDB8;
+        public const long WorldChrMan = 0x0477FDB8;
 
         /// <summary>
         /// BaseC (GameOptionMan) address
@@ -124,7 +124,7 @@ namespace DS3ConnectionInfo
         /// <summary>
         /// SprjSessionManager address
         /// </summary>
-        public const long SprjSessionManager = 0x4796270;
+        public const long SprjSessionManager = 0x4796260;
 
         /// <summary>
         /// Apply Effect script x86_64
@@ -290,7 +290,7 @@ namespace DS3ConnectionInfo
             MemoryManager.ExecuteFunction(ProcHandle, applyEffect, new Dictionary<int, object>()
             {
                 { 0xf, Process.MainModule.BaseAddress.ToInt64() + WorldChrMan },
-                { 0x2a, Process.MainModule.BaseAddress.ToInt64() + 0x88f360 }
+                { 0x2a, Process.MainModule.BaseAddress.ToInt64() + 0x88f710 }
             }, new Dictionary<int, object>()
             {
                 { 0x2, effectId }
@@ -302,7 +302,7 @@ namespace DS3ConnectionInfo
             MemoryManager.ExecuteFunction(ProcHandle, leaveSession, new Dictionary<int, object>()
             {
                 { 2, Process.MainModule.BaseAddress.ToInt64() + SprjSessionManager },
-                { 0x13, Process.MainModule.BaseAddress.ToInt64() + 0xdf78d0 }
+                { 0x13, Process.MainModule.BaseAddress.ToInt64() + 0xdf7A00 }
             });
         }
 
